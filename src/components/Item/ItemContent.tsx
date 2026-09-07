@@ -24,6 +24,7 @@ import { c, useGetDateColorFn, useGetTagColorFn } from '../helpers';
 import { EditState, EditingState, Item, isEditing } from '../types';
 import { CompletionDate, DateAndTime, RelativeDate } from './DateAndTime';
 import { InlineMetadata } from './InlineMetadata';
+import { SubtaskList } from './SubtaskList';
 import {
   constructDatePicker,
   constructMenuDatePickerOnChange,
@@ -82,6 +83,8 @@ export interface ItemContentProps {
   showMetadata?: boolean;
   editState: EditState;
   isStatic: boolean;
+  showAddSubtask?: boolean;
+  onAddSubtaskComplete?: () => void;
 }
 
 function checkCheckbox(stateManager: StateManager, title: string, checkboxIndex: number) {
@@ -187,6 +190,8 @@ export const ItemContent = memo(function ItemContent({
   searchQuery,
   showMetadata = true,
   isStatic,
+  showAddSubtask,
+  onAddSubtaskComplete,
 }: ItemContentProps) {
   const { stateManager, filePath, boardModifiers } = useContext(KanbanContext);
   const getDateColor = useGetDateColorFn(stateManager);
@@ -293,6 +298,12 @@ export const ItemContent = memo(function ItemContent({
           onPointerUp={onCheckboxContainerClick}
         />
       )}
+      <SubtaskList
+        item={item}
+        stateManager={stateManager}
+        showAddInput={!!showAddSubtask}
+        onAddComplete={onAddSubtaskComplete ?? (() => {})}
+      />
       {showMetadata && (
         <div className={c('item-metadata')}>
           {!item.data.metadata.completedDate && (

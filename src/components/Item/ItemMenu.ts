@@ -7,6 +7,7 @@ import { moveEntity } from 'src/dnd/util/data';
 import { t } from 'src/lang/helpers';
 
 import { BoardModifiers } from '../../helpers/boardModifiers';
+import { DeleteCardModal } from './DeleteCardModal';
 import { applyTemplate, escapeRegExpStr, generateInstanceId, maybeCompleteForMove } from '../helpers';
 import { DataTypes, EditState, Item } from '../types';
 import {
@@ -25,6 +26,7 @@ const condenceWhiteSpaceRE = /\s+/g;
 
 interface UseItemMenuParams {
   setEditState: Dispatch<StateUpdater<EditState>>;
+  setShowAddSubtask: (v: boolean) => void;
   item: Item;
   path: Path;
   boardModifiers: BoardModifiers;
@@ -33,6 +35,7 @@ interface UseItemMenuParams {
 
 export function useItemMenu({
   setEditState,
+  setShowAddSubtask,
   item,
   path,
   boardModifiers,
@@ -183,7 +186,22 @@ export function useItemMenu({
         .addItem((i) => {
           i.setIcon('lucide-trash-2')
             .setTitle(t('Delete card'))
-            .onClick(() => boardModifiers.deleteEntity(path));
+            .onClick(() => {
+              const linkedFile = item.data.metadata.file;
+              if (linkedFile) {
+                new DeleteCardModal(
+                  stateManager.app,
+                  linkedFile,
+                  () => boardModifiers.deleteEntity(path),
+                  async () => {
+                    boardModifiers.deleteEntity(path);
+                    await stateManager.app.vault.trash(linkedFile, true);
+                  }
+                ).open();
+              } else {
+                boardModifiers.deleteEntity(path);
+              }
+            });
         })
         .addSeparator()
         .addItem((i) => {
@@ -263,7 +281,14 @@ export function useItemMenu({
         }
       }
 
-      menu.addSeparator();
+      menu
+        .addSeparator()
+        .addItem((i) => {
+          i.setIcon('lucide-list-checks')
+            .setTitle(t('Add new subtask'))
+            .onClick(() => setShowAddSubtask(true));
+        })
+        .addSeparator();
 
       const addMoveToOptions = (menu: Menu) => {
         const lanes = stateManager.state.children;
@@ -310,6 +335,6 @@ export function useItemMenu({
 
       menu.showAtPosition(coordinates);
     },
-    [setEditState, item, path, boardModifiers, stateManager]
+    [setEditState, setShowAddSubtask, item, path, boardModifiers, stateManager]
   );
 }

@@ -1,4 +1,4 @@
-import { Keymap, Menu } from 'obsidian';
+import { Keymap, Menu, parseLinktext } from 'obsidian';
 import { KanbanView } from 'src/KanbanView';
 
 const noBreakSpace = /\u00A0/g;
@@ -57,7 +57,26 @@ export function bindMarkdownEvents(view: KanbanView) {
     if (!link) return;
 
     evt.preventDefault();
-    app.workspace.openLinkText(link.href, view.file.path, Keymap.isModEvent(evt));
+
+    const modEvent = Keymap.isModEvent(evt);
+
+    if (modEvent !== false) {
+      // Modifier key (split, new window, etc.) — use the standard workspace API
+      app.workspace.openLinkText(link.href, view.file.path, modEvent);
+      return;
+    }
+
+    // Plain click: resolve the file and call openFile on the kanban's own leaf,
+    // exactly like the file explorer does. This lets plugins that patch
+    // WorkspaceLeaf.prototype.openFile (e.g. "Open in New Tab") intercept correctly.
+    const { path, subpath } = parseLinktext(link.href);
+    const file = app.metadataCache.getFirstLinkpathDest(path, view.file.path);
+
+    if (file) {
+      view.leaf.openFile(file, subpath ? { eState: { subpath } } : undefined);
+    } else {
+      app.workspace.openLinkText(link.href, view.file.path, false);
+    }
   };
 
   contentEl.on('click', 'a.internal-link', onLinkClick);

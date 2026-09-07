@@ -48,6 +48,7 @@ const ItemInner = memo(function ItemInner({
 }: ItemInnerProps) {
   const { stateManager, boardModifiers } = useContext(KanbanContext);
   const [editState, setEditState] = useState<EditState>(EditingState.cancel);
+  const [showAddSubtask, setShowAddSubtask] = useState(false);
 
   const dndManager = useContext(DndManagerContext);
 
@@ -74,6 +75,7 @@ const ItemInner = memo(function ItemInner({
     boardModifiers,
     item,
     setEditState: setEditState,
+    setShowAddSubtask,
     stateManager,
     path,
   });
@@ -129,6 +131,8 @@ const ItemInner = memo(function ItemInner({
           setEditState={setEditState}
           editState={editState}
           isStatic={isStatic}
+          showAddSubtask={showAddSubtask}
+          onAddSubtaskComplete={() => setShowAddSubtask(false)}
         />
         <ItemMenuButton editState={editState} setEditState={setEditState} showMenu={showItemMenu} />
       </div>

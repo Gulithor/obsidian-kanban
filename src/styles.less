@@ -878,6 +878,82 @@ button.kanban-plugin__new-item-button {
   color: var(--text-normal);
 }
 
+.kanban-plugin__item-subtasks {
+  padding-inline: 8px;
+  padding-block: 4px 2px;
+  font-size: 0.85rem;
+}
+
+.kanban-plugin__item-subtask {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-block: 2px;
+  line-height: var(--line-height-tight);
+
+  &:not(:hover) .kanban-plugin__item-subtask-delete {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.kanban-plugin__item-subtask-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  cursor: pointer;
+  min-width: 0;
+
+  input[type="checkbox"] {
+    margin: 0;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+}
+
+.kanban-plugin__item-subtask-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: opacity 0.1s, color 0.1s;
+  height: 20px;
+  width: 20px;
+  padding: 2px;
+  border-radius: var(--radius-s);
+
+  &:hover {
+    color: var(--color-red);
+    background-color: var(--background-modifier-hover);
+  }
+}
+
+.kanban-plugin__item-subtask-text {
+  color: var(--text-normal);
+}
+
+.kanban-plugin__item-subtask-text--done {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.kanban-plugin__item-subtask-input-wrapper {
+  padding-block-start: 2px;
+}
+
+.kanban-plugin__item-subtask-input {
+  width: 100%;
+  font-size: inherit;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  padding: 2px 6px;
+}
+
 .kanban-plugin__meta-table {
   width: 100%;
   margin: 0;
