@@ -20,6 +20,9 @@ import {
   DateColor,
   DateColorSetting,
   DateColorSettingTemplate,
+  LaneColor,
+  LaneColorSetting,
+  LaneColorSettingTemplate,
   MetadataSetting,
   MetadataSettingTemplate,
   TagColor,
@@ -42,6 +45,7 @@ import {
 } from './settingHelpers';
 import { cleanUpDateSettings, renderDateSettings } from './settings/DateColorSettings';
 import { cleanupMetadataSettings, renderMetadataSettings } from './settings/MetadataSettings';
+import { cleanUpLaneColorSettings, renderLaneColorSettings } from './settings/LaneColorSettings';
 import { cleanUpTagSettings, renderTagSettings } from './settings/TagColorSettings';
 import { cleanUpTagSortSettings, renderTagSortSettings } from './settings/TagSortSettings';
 
@@ -88,6 +92,7 @@ export interface KanbanSettings {
   'show-view-as-markdown'?: boolean;
   'table-sizing'?: Record<string, number>;
   'tag-action'?: 'kanban' | 'obsidian';
+  'lane-colors'?: LaneColor[];
   'tag-colors'?: TagColor[];
   'tag-sort'?: TagSort[];
   'time-format'?: string;
@@ -137,6 +142,7 @@ export const settingKeyLookup: Set<keyof KanbanSettings> = new Set([
   'show-set-view',
   'show-view-as-markdown',
   'table-sizing',
+  'lane-colors',
   'tag-action',
   'tag-colors',
   'tag-sort',
@@ -589,6 +595,30 @@ export class SettingsManager {
       this.cleanupFns.push(() => {
         if (setting.settingEl) {
           cleanUpTagSettings(setting.settingEl);
+        }
+      });
+    });
+
+    new Setting(contentEl).then((setting) => {
+      const [value] = this.getSetting('lane-colors', local);
+
+      const keys: LaneColorSetting[] = ((value || []) as LaneColor[]).map((k) => ({
+        ...LaneColorSettingTemplate,
+        id: generateInstanceId(),
+        data: k,
+      }));
+
+      renderLaneColorSettings(setting.settingEl, keys, (keys: LaneColorSetting[]) =>
+        this.applySettingsUpdate({
+          'lane-colors': {
+            $set: keys.map((k) => k.data),
+          },
+        })
+      );
+
+      this.cleanupFns.push(() => {
+        if (setting.settingEl) {
+          cleanUpLaneColorSettings(setting.settingEl);
         }
       });
     });

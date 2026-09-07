@@ -50,6 +50,12 @@ function DraggableLaneRaw({
   const laneWidth = stateManager.useSetting('lane-width');
   const fullWidth = boardView === 'list' && stateManager.useSetting('full-list-lane-width');
   const insertionMethod = stateManager.useSetting('new-card-insertion-method');
+  const laneColors = stateManager.useSetting('lane-colors') ?? [];
+  const resolvedLaneColor = lane.data.laneColor
+    ? (laneColors as Array<{ name: string; color: string }>).find(
+        (c) => c.name === lane.data.laneColor
+      )?.color
+    : undefined;
   const laneStyles = useMemo(
     () =>
       !(isCollapsed && collapseDir === 'horizontal') && (fullWidth || laneWidth)
@@ -153,9 +159,10 @@ function DraggableLaneRaw({
       >
         <div
           data-count={lane.children.length}
-          data-lane-color={lane.data.laneColor || undefined}
+          data-lane-color={resolvedLaneColor ? 'true' : undefined}
           ref={elementRef}
           className={classcat([c('lane'), { 'will-prepend': shouldPrepend }])}
+          style={resolvedLaneColor ? ({ '--kanban-lane-color': resolvedLaneColor } as any) : undefined}
         >
           <CollapsedDropArea {...dropAreaProps}>
             <LaneHeader

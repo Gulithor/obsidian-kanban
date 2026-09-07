@@ -105,6 +105,11 @@ export interface BoardData {
   errors: ErrorReport[];
 }
 
+export interface LaneColor {
+  name: string;
+  color: string;
+}
+
 export type Item = Nestable<ItemData>;
 export type Lane = Nestable<LaneData, Item>;
 export type Board = Nestable<BoardData, Lane>;
@@ -112,6 +117,7 @@ export type MetadataSetting = Nestable<DataKey>;
 export type TagColorSetting = Nestable<TagColor>;
 export type TagSortSetting = Nestable<TagSort>;
 export type DateColorSetting = Nestable<DateColor>;
+export type LaneColorSetting = Nestable<LaneColor>;
 
 export const DataTypes = {
   Item: 'item',
@@ -121,6 +127,7 @@ export const DataTypes = {
   TagColorSetting: 'tag-color',
   TagSortSetting: 'tag-sort',
   DateColorSetting: 'date-color',
+  LaneColorSetting: 'lane-color',
 };
 
 export const ItemTemplate = {
@@ -162,6 +169,12 @@ export const TagColorSettingTemplate = {
 export const DateColorSettingTemplate = {
   accepts: [] as string[],
   type: DataTypes.DateColorSetting,
+  children: [] as any[],
+};
+
+export const LaneColorSettingTemplate = {
+  accepts: [] as string[],
+  type: DataTypes.LaneColorSetting,
   children: [] as any[],
 };
 

@@ -11,14 +11,6 @@ import { KanbanContext } from '../context';
 import { c, generateInstanceId } from '../helpers';
 import { EditState, Lane, LaneSort, LaneTemplate } from '../types';
 
-const LANE_COLORS: Array<{ key: string; label: string }> = [
-  { key: 'red', label: 'Red' },
-  { key: 'orange', label: 'Orange' },
-  { key: 'yellow', label: 'Yellow' },
-  { key: 'green', label: 'Green' },
-  { key: 'blue', label: 'Blue' },
-  { key: 'purple', label: 'Purple' },
-];
 
 export type LaneAction = 'delete' | 'archive' | 'archive-items' | null;
 
@@ -135,14 +127,15 @@ export function useSettingsMenu({ setEditState, path, lane }: UseSettingsMenuPar
             });
         });
 
-        LANE_COLORS.forEach(({ key, label }) => {
+        const laneColors = stateManager.getSetting('lane-colors') ?? [];
+        laneColors.forEach((entry: { name: string; color: string }) => {
           submenu.addItem((i: any) => {
-            i.setTitle(label)
-              .setChecked(lane.data.laneColor === key)
+            i.setTitle(entry.name || '(unnamed)')
+              .setChecked(lane.data.laneColor === entry.name)
               .onClick(() => {
                 boardModifiers.updateLane(
                   path,
-                  update(lane, { data: { laneColor: { $set: key } } })
+                  update(lane, { data: { laneColor: { $set: entry.name } } })
                 );
               });
           });
