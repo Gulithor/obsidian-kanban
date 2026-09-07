@@ -290,9 +290,9 @@ export function astToUnhydratedBoard(
             return true;
           }
 
-          const colorMatch = childStr.match(/^\[kanban-color::\s*(\w+)\]$/);
+          const colorMatch = childStr.match(/^kanban-lane-color:\s*(.+)$/);
           if (colorMatch) {
-            laneColor = colorMatch[1];
+            laneColor = colorMatch[1].trim();
             return true;
           }
         }
@@ -442,10 +442,12 @@ function laneToMd(lane: Lane) {
 
   if (lane.data.shouldMarkItemsComplete) {
     lines.push(completeString);
+    lines.push('');
   }
 
   if (lane.data.laneColor) {
-    lines.push(`[kanban-color:: ${lane.data.laneColor}]`);
+    lines.push(`kanban-lane-color: ${lane.data.laneColor}`);
+    lines.push('');
   }
 
   lane.children.forEach((item) => {
