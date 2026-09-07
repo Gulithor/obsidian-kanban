@@ -16,32 +16,21 @@ interface ItemProps {
 function Item({ entry, onDelete, onUpdate }: ItemProps) {
   return (
     <div className={c('setting-item-wrapper')}>
-      <div className={c('setting-item')}>
-        <div className={c('setting-controls-wrapper')}>
-          <div className={c('setting-input-wrapper')}>
-            <div>
-              <div className={c('setting-item-label')}>{t('Lane color name')}</div>
-              <input
-                type="text"
-                placeholder={t('Color name')}
-                value={entry.name}
-                onChange={(e) => onUpdate((e.target as HTMLInputElement).value, entry.color)}
-              />
-            </div>
-            <div>
-              <div className={c('setting-item-label')}>{t('Color')}</div>
-              <ColorPickerInput
-                color={entry.color}
-                setColor={(color) => onUpdate(entry.name, color)}
-                defaultColor="rgba(255,0,0,1)"
-              />
-            </div>
-          </div>
-        </div>
-        <div className={c('setting-button-wrapper')}>
-          <div className="clickable-icon" onClick={onDelete} aria-label={t('Delete')}>
-            <Icon name="lucide-trash-2" />
-          </div>
+      <div className={c('setting-item')} style={{ alignItems: 'center', gap: '8px' }}>
+        <input
+          type="text"
+          placeholder={t('Color name')}
+          value={entry.name}
+          style={{ flex: 1 }}
+          onChange={(e) => onUpdate((e.target as HTMLInputElement).value, entry.color)}
+        />
+        <ColorPickerInput
+          color={entry.color}
+          setColor={(color) => onUpdate(entry.name, color)}
+          defaultColor="rgba(255,0,0,1)"
+        />
+        <div className="clickable-icon" onClick={onDelete} aria-label={t('Delete')}>
+          <Icon name="lucide-trash-2" />
         </div>
       </div>
     </div>

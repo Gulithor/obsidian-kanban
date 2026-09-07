@@ -70,6 +70,7 @@ export interface UseSettingsMenuParams {
 export function useSettingsMenu({ setEditState, path, lane }: UseSettingsMenuParams) {
   const { stateManager, boardModifiers } = useContext(KanbanContext);
   const [confirmAction, setConfirmAction] = useState<LaneAction>(null);
+  const laneColors = (stateManager.useSetting('lane-colors') ?? []) as Array<{ name: string; color: string }>;
 
   const settingsMenu = useMemo(() => {
     const metadataSortOptions = new Set<string>();
@@ -127,8 +128,7 @@ export function useSettingsMenu({ setEditState, path, lane }: UseSettingsMenuPar
             });
         });
 
-        const laneColors = stateManager.getSetting('lane-colors') ?? [];
-        laneColors.forEach((entry: { name: string; color: string }) => {
+        laneColors.forEach((entry) => {
           submenu.addItem((i: any) => {
             i.setTitle(entry.name || '(unnamed)')
               .setChecked(lane.data.laneColor === entry.name)
@@ -385,7 +385,7 @@ export function useSettingsMenu({ setEditState, path, lane }: UseSettingsMenuPar
     }
 
     return menu;
-  }, [stateManager, setConfirmAction, path, lane]);
+  }, [stateManager, setConfirmAction, path, lane, laneColors]);
 
   return {
     settingsMenu,
