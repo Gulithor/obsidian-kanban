@@ -139,12 +139,13 @@ export function useSettingsMenu({ setEditState, path, lane }: UseSettingsMenuPar
                 );
               });
 
-            // Inject color dot directly into the menu item's title element
-            if (i.titleEl) {
+            // Inject color dot into the menu item's title element
+            const titleEl: HTMLElement | null =
+              (i as any).titleEl ?? (i as any).dom?.querySelector('.menu-item-title');
+            if (titleEl) {
               const dot = document.createElement('span');
-              dot.className = c('lane-color-dot');
-              dot.style.backgroundColor = entry.color;
-              i.titleEl.prepend(dot);
+              dot.style.cssText = `display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${entry.color};margin-right:6px;vertical-align:middle;flex-shrink:0;`;
+              titleEl.prepend(dot);
             }
           });
         });
