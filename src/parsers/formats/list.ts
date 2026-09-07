@@ -193,6 +193,15 @@ export function listItemToItemData(stateManager: StateManager, md: string, item:
 
   itemData.title = preprocessTitle(stateManager, dedentNewLines(executeDeletion(title)));
 
+  // Extract and remove urgent flag stored as [kanban-urgent:: true]
+  const KANBAN_URGENT_RE = /\s*\[kanban-urgent::\s*true\]/g;
+  if (KANBAN_URGENT_RE.test(itemData.titleRaw)) {
+    itemData.metadata.urgent = true;
+    itemData.title = itemData.title.replace(KANBAN_URGENT_RE, '').trim();
+    itemData.titleSearch = itemData.titleSearch.replace(KANBAN_URGENT_RE, '').trim();
+    itemData.titleSearchRaw = itemData.titleSearchRaw.replace(KANBAN_URGENT_RE, '').trim();
+  }
+
   // Extract and remove kanban completion date stored as [kanban-done:: YYYY-MM-DD]
   const KANBAN_DONE_RE = /\s*\[kanban-done::\s*([^\]]+)\]/g;
   const doneMatch = KANBAN_DONE_RE.exec(itemData.titleRaw);

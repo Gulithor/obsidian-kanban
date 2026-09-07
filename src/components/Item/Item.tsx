@@ -17,6 +17,7 @@ import { frontmatterKey } from 'src/parsers/common';
 import { KanbanContext, SearchContext } from '../context';
 import { c } from '../helpers';
 import { EditState, EditingState, Item, isEditing } from '../types';
+import { Icon } from '../Icon/Icon';
 import { ItemCheckbox } from './ItemCheckbox';
 import { ItemContent } from './ItemContent';
 import { useItemMenu } from './ItemMenu';
@@ -134,6 +135,11 @@ const ItemInner = memo(function ItemInner({
           showAddSubtask={showAddSubtask}
           onAddSubtaskComplete={() => setShowAddSubtask(false)}
         />
+        {item.data.metadata.urgent && (
+          <span className={c('item-urgent-icon')} aria-label="Urgent">
+            <Icon name="lucide-alert-circle" />
+          </span>
+        )}
         <ItemMenuButton editState={editState} setEditState={setEditState} showMenu={showItemMenu} />
       </div>
       <ItemMetadata searchQuery={isMatch ? searchQuery : undefined} item={item} />

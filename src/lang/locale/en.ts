@@ -236,6 +236,8 @@ const en = {
   'Move to top': 'Move to top',
   'Move to bottom': 'Move to bottom',
   'Move to list': 'Move to list',
+  'Mark as urgent': 'Mark as urgent',
+  'Remove urgent': 'Remove urgent',
   'Add new subtask': 'Add new subtask',
   'Lane color': 'Lane color',
   'Lane Colors': 'Lane Colors',

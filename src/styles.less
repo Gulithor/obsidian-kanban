@@ -1878,3 +1878,21 @@ body:not(.native-scrollbars) .kanban-plugin__scroll-container::-webkit-scrollbar
   vertical-align: middle;
   flex-shrink: 0;
 }
+
+// Urgent cards
+.kanban-plugin__item.is-urgent {
+  border-top: 2px solid var(--color-red);
+}
+
+.kanban-plugin__item-urgent-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--color-red);
+  margin-right: 2px;
+
+  .kanban-plugin__icon {
+    width: 14px;
+    height: 14px;
+  }
+}

@@ -72,6 +72,7 @@ export interface ItemMetadata {
   time?: moment.Moment;
   completedDateStr?: string;
   completedDate?: moment.Moment;
+  urgent?: boolean;
   tags?: string[];
   fileAccessor?: FileAccessor;
   file?: TFile | null;

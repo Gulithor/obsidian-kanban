@@ -284,6 +284,19 @@ export function useItemMenu({
       menu
         .addSeparator()
         .addItem((i) => {
+          const isUrgent = !!item.data.metadata.urgent;
+          i.setIcon('lucide-alert-circle')
+            .setTitle(isUrgent ? t('Remove urgent') : t('Mark as urgent'))
+            .setChecked(isUrgent)
+            .onClick(() => {
+              const URGENT_RE = /\s*\[kanban-urgent::\s*true\]/g;
+              const newTitleRaw = isUrgent
+                ? item.data.titleRaw.replace(URGENT_RE, '').trim()
+                : item.data.titleRaw.trimEnd() + ' [kanban-urgent:: true]';
+              boardModifiers.updateItem(path, stateManager.updateItemContent(item, newTitleRaw));
+            });
+        })
+        .addItem((i) => {
           i.setIcon('lucide-list-checks')
             .setTitle(t('Add new subtask'))
             .onClick(() => setShowAddSubtask(true));
