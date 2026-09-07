@@ -130,7 +130,13 @@ export function useSettingsMenu({ setEditState, path, lane }: UseSettingsMenuPar
 
         laneColors.forEach((entry) => {
           submenu.addItem((i: any) => {
-            i.setTitle(entry.name || '(unnamed)')
+            const frag = document.createDocumentFragment();
+            const dot = frag.appendChild(document.createElement('span'));
+            dot.className = c('lane-color-dot');
+            dot.style.backgroundColor = entry.color;
+            frag.appendChild(document.createTextNode(entry.name || '(unnamed)'));
+
+            i.setTitle(frag)
               .setChecked(lane.data.laneColor === entry.name)
               .onClick(() => {
                 boardModifiers.updateLane(

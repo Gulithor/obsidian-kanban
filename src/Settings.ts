@@ -599,6 +599,8 @@ export class SettingsManager {
       });
     });
 
+    contentEl.createEl('h4', { text: t('Lane Colors') });
+
     new Setting(contentEl).then((setting) => {
       const [value] = this.getSetting('lane-colors', local);
 

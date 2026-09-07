@@ -238,6 +238,7 @@ const en = {
   'Move to list': 'Move to list',
   'Add new subtask': 'Add new subtask',
   'Lane color': 'Lane color',
+  'Lane Colors': 'Lane Colors',
   'Color name': 'Color name (e.g. Red)',
   'Lane colors': 'Lane colors',
   'Define colors available for lane borders. The name is used to identify the color in the lane menu.':
