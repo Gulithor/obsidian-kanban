@@ -11,6 +11,15 @@ import { KanbanContext } from '../context';
 import { c, generateInstanceId } from '../helpers';
 import { EditState, Lane, LaneSort, LaneTemplate } from '../types';
 
+const LANE_COLORS: Array<{ key: string; label: string }> = [
+  { key: 'red', label: 'Red' },
+  { key: 'orange', label: 'Orange' },
+  { key: 'yellow', label: 'Yellow' },
+  { key: 'green', label: 'Green' },
+  { key: 'blue', label: 'Blue' },
+  { key: 'purple', label: 'Purple' },
+];
+
 export type LaneAction = 'delete' | 'archive' | 'archive-items' | null;
 
 const actionLabels = {
@@ -108,6 +117,36 @@ export function useSettingsMenu({ setEditState, path, lane }: UseSettingsMenuPar
               })
             );
           });
+      })
+      .addItem((item) => {
+        const submenu = (item as any)
+          .setIcon('lucide-palette')
+          .setTitle(t('Lane color'))
+          .setSubmenu() as Menu;
+
+        submenu.addItem((i: any) => {
+          i.setTitle(t('None'))
+            .setChecked(!lane.data.laneColor)
+            .onClick(() => {
+              boardModifiers.updateLane(
+                path,
+                update(lane, { data: { laneColor: { $set: undefined } } })
+              );
+            });
+        });
+
+        LANE_COLORS.forEach(({ key, label }) => {
+          submenu.addItem((i: any) => {
+            i.setTitle(label)
+              .setChecked(lane.data.laneColor === key)
+              .onClick(() => {
+                boardModifiers.updateLane(
+                  path,
+                  update(lane, { data: { laneColor: { $set: key } } })
+                );
+              });
+          });
+        });
       })
       .addItem((item) => {
         item

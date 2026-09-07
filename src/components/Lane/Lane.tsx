@@ -153,6 +153,7 @@ function DraggableLaneRaw({
       >
         <div
           data-count={lane.children.length}
+          data-lane-color={lane.data.laneColor || undefined}
           ref={elementRef}
           className={classcat([c('lane'), { 'will-prepend': shouldPrepend }])}
         >

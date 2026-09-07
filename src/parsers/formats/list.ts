@@ -264,6 +264,7 @@ export function astToUnhydratedBoard(
       const title = getStringFromBoundary(md, headingBoundary);
 
       let shouldMarkItemsComplete = false;
+      let laneColor: string | undefined;
 
       const list = getNextOfType(root.children, index, 'list', (child) => {
         if (child.type === 'heading') return false;
@@ -277,6 +278,12 @@ export function astToUnhydratedBoard(
 
           if (childStr === t('Complete')) {
             shouldMarkItemsComplete = true;
+            return true;
+          }
+
+          const colorMatch = childStr.match(/^\[kanban-color::\s*(\w+)\]$/);
+          if (colorMatch) {
+            laneColor = colorMatch[1];
             return true;
           }
         }
@@ -306,6 +313,7 @@ export function astToUnhydratedBoard(
           data: {
             ...parseLaneTitle(title),
             shouldMarkItemsComplete,
+            laneColor,
           },
         });
       } else {
@@ -323,6 +331,7 @@ export function astToUnhydratedBoard(
           data: {
             ...parseLaneTitle(title),
             shouldMarkItemsComplete,
+            laneColor,
           },
         });
       }
@@ -424,6 +433,10 @@ function laneToMd(lane: Lane) {
 
   if (lane.data.shouldMarkItemsComplete) {
     lines.push(completeString);
+  }
+
+  if (lane.data.laneColor) {
+    lines.push(`[kanban-color:: ${lane.data.laneColor}]`);
   }
 
   lane.children.forEach((item) => {

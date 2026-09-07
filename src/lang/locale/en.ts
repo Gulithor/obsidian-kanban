@@ -237,6 +237,8 @@ const en = {
   'Move to bottom': 'Move to bottom',
   'Move to list': 'Move to list',
   'Add new subtask': 'Add new subtask',
+  'Lane color': 'Lane color',
+  None: 'None',
   'This card is linked to the note "{{noteName}}". What would you like to do?':
     'This card is linked to the note "{{noteName}}". What would you like to do?',
   'Delete card only': 'Delete card only',
