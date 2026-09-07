@@ -22,7 +22,7 @@ import {
 import { KanbanContext, SearchContext } from '../context';
 import { c, useGetDateColorFn, useGetTagColorFn } from '../helpers';
 import { EditState, EditingState, Item, isEditing } from '../types';
-import { DateAndTime, RelativeDate } from './DateAndTime';
+import { CompletionDate, DateAndTime, RelativeDate } from './DateAndTime';
 import { InlineMetadata } from './InlineMetadata';
 import {
   constructDatePicker,
@@ -295,13 +295,18 @@ export const ItemContent = memo(function ItemContent({
       )}
       {showMetadata && (
         <div className={c('item-metadata')}>
-          <RelativeDate item={item} stateManager={stateManager} />
-          <DateAndTime
-            item={item}
-            stateManager={stateManager}
-            filePath={filePath}
-            getDateColor={getDateColor}
-          />
+          {!item.data.metadata.completedDate && (
+            <RelativeDate item={item} stateManager={stateManager} />
+          )}
+          {!item.data.metadata.completedDate && (
+            <DateAndTime
+              item={item}
+              stateManager={stateManager}
+              filePath={filePath}
+              getDateColor={getDateColor}
+            />
+          )}
+          <CompletionDate item={item} stateManager={stateManager} />
           <InlineMetadata item={item} stateManager={stateManager} />
           <Tags tags={item.data.metadata.tags} searchQuery={searchQuery} />
         </div>

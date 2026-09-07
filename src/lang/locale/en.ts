@@ -274,6 +274,14 @@ const en = {
 
   // components/Editor/MarkdownEditor.tsx
   Submit: 'Submit',
+
+  // Settings.ts — due-date coloring & done-date
+  'Color due dates': 'Color due dates',
+  'Automatically color dates red when overdue, orange when due today, and yellow when due within 7 days':
+    'Automatically color dates red when overdue, orange when due today, and yellow when due within 7 days',
+  'Show completion date': 'Show completion date',
+  'When a card moves into a Done list, display the date it was moved there in green':
+    'When a card moves into a Done list, display the date it was moved there in green',
 };
 
 export type Lang = typeof en;

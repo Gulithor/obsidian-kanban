@@ -57,6 +57,8 @@ export interface KanbanSettings {
   'archive-with-date'?: boolean;
   'date-colors'?: DateColor[];
   'date-display-format'?: string;
+  'due-date-coloring'?: boolean;
+  'show-done-dates'?: boolean;
   'date-format'?: string;
   'date-picker-week-start'?: number;
   'date-time-display-format'?: string;
@@ -105,6 +107,8 @@ export const settingKeyLookup: Set<keyof KanbanSettings> = new Set([
   'archive-with-date',
   'date-colors',
   'date-display-format',
+  'due-date-coloring',
+  'show-done-dates',
   'date-format',
   'date-picker-week-start',
   'date-time-display-format',
@@ -874,6 +878,94 @@ export class SettingsManager {
 
                 this.applySettingsUpdate({
                   $unset: ['show-relative-date'],
+                });
+              });
+          });
+      });
+
+    new Setting(contentEl)
+      .setName(t('Color due dates'))
+      .setDesc(
+        t(
+          'Automatically color dates red when overdue, orange when due today, and yellow when due within 7 days'
+        )
+      )
+      .then((setting) => {
+        let toggleComponent: ToggleComponent;
+
+        setting
+          .addToggle((toggle) => {
+            toggleComponent = toggle;
+
+            const [value, globalValue] = this.getSetting('due-date-coloring', local);
+
+            if (value !== undefined) {
+              toggle.setValue(value as boolean);
+            } else if (globalValue !== undefined) {
+              toggle.setValue(globalValue as boolean);
+            }
+
+            toggle.onChange((newValue) => {
+              this.applySettingsUpdate({
+                'due-date-coloring': {
+                  $set: newValue,
+                },
+              });
+            });
+          })
+          .addExtraButton((b) => {
+            b.setIcon('lucide-rotate-ccw')
+              .setTooltip(t('Reset to default'))
+              .onClick(() => {
+                const [, globalValue] = this.getSetting('due-date-coloring', local);
+                toggleComponent.setValue(!!globalValue);
+
+                this.applySettingsUpdate({
+                  $unset: ['due-date-coloring'],
+                });
+              });
+          });
+      });
+
+    new Setting(contentEl)
+      .setName(t('Show completion date'))
+      .setDesc(
+        t('When a card moves into a Done list, display the date it was moved there in green')
+      )
+      .then((setting) => {
+        let toggleComponent: ToggleComponent;
+
+        setting
+          .addToggle((toggle) => {
+            toggleComponent = toggle;
+
+            const [value, globalValue] = this.getSetting('show-done-dates', local);
+
+            if (value !== undefined) {
+              toggle.setValue(value as boolean);
+            } else if (globalValue !== undefined) {
+              toggle.setValue(globalValue as boolean);
+            } else {
+              toggle.setValue(true);
+            }
+
+            toggle.onChange((newValue) => {
+              this.applySettingsUpdate({
+                'show-done-dates': {
+                  $set: newValue,
+                },
+              });
+            });
+          })
+          .addExtraButton((b) => {
+            b.setIcon('lucide-rotate-ccw')
+              .setTooltip(t('Reset to default'))
+              .onClick(() => {
+                const [, globalValue] = this.getSetting('show-done-dates', local);
+                toggleComponent.setValue((globalValue as boolean) ?? true);
+
+                this.applySettingsUpdate({
+                  $unset: ['show-done-dates'],
                 });
               });
           });

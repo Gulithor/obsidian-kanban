@@ -1,5 +1,6 @@
 import classcat from 'classcat';
 import update from 'immutability-helper';
+import { moment } from 'obsidian';
 import { JSX, createPortal, memo, useCallback, useMemo } from 'preact/compat';
 
 import { KanbanView } from './KanbanView';
@@ -52,9 +53,12 @@ export function DragDropApp({ win, plugin }: { win: Window; plugin: KanbanPlugin
         const destinationParent = getEntityFromPath(stateManager.state, dropPath.slice(0, -1));
 
         try {
+          const today = moment().format('YYYY-MM-DD');
+          const completionSuffix = ` [kanban-done:: ${today}]`;
           const items: Item[] = data.content.map((title: string) => {
-            let item = stateManager.getNewItem(title, ' ');
             const isComplete = !!destinationParent?.data?.shouldMarkItemsComplete;
+            const titleWithDone = isComplete ? title + completionSuffix : title;
+            let item = stateManager.getNewItem(titleWithDone, ' ');
 
             if (isComplete) {
               item = update(item, { data: { checkChar: { $set: getTaskStatusPreDone() } } });
@@ -70,12 +74,10 @@ export function DragDropApp({ win, plugin }: { win: Window; plugin: KanbanPlugin
             return update(item, {
               data: {
                 checked: {
-                  $set: !!destinationParent?.data?.shouldMarkItemsComplete,
+                  $set: isComplete,
                 },
                 checkChar: {
-                  $set: destinationParent?.data?.shouldMarkItemsComplete
-                    ? getTaskStatusDone()
-                    : ' ',
+                  $set: isComplete ? getTaskStatusDone() : ' ',
                 },
               },
             });

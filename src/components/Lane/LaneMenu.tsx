@@ -97,6 +97,20 @@ export function useSettingsMenu({ setEditState, path, lane }: UseSettingsMenuPar
       })
       .addItem((item) => {
         item
+          .setIcon('lucide-check-square')
+          .setTitle(t('Mark cards in this list as complete'))
+          .setChecked(!!lane.data.shouldMarkItemsComplete)
+          .onClick(() => {
+            boardModifiers.updateLane(
+              path,
+              update(lane, {
+                data: { $toggle: ['shouldMarkItemsComplete'] },
+              })
+            );
+          });
+      })
+      .addItem((item) => {
+        item
           .setIcon('lucide-archive')
           .setTitle(t('Archive cards'))
           .onClick(() => setConfirmAction('archive-items'));

@@ -258,6 +258,8 @@ export class StateManager {
       'tag-sort': this.getSettingRaw('tag-sort', suppliedSettings) ?? [],
       'date-colors': this.getSettingRaw('date-colors', suppliedSettings) ?? [],
       'tag-action': this.getSettingRaw('tag-action', suppliedSettings) ?? 'obsidian',
+      'due-date-coloring': this.getSettingRaw('due-date-coloring', suppliedSettings) ?? false,
+      'show-done-dates': this.getSettingRaw('show-done-dates', suppliedSettings) ?? true,
     };
   }
 

@@ -36,6 +36,24 @@ interface DateProps {
   stateManager: StateManager;
 }
 
+export function CompletionDate({ item, stateManager }: DateProps) {
+  const showDoneDates = stateManager.useSetting('show-done-dates');
+  const completedDate = item.data.metadata.completedDate;
+
+  if (!showDoneDates || !completedDate) return null;
+
+  const dateDisplayFormat = stateManager.useSetting('date-display-format');
+
+  return (
+    <span
+      className={classcat([c('item-metadata-date-wrapper'), c('done-date')])}
+      style={{ '--date-color': 'var(--color-green)' } as any}
+    >
+      <span className={c('item-metadata-done-date')}>✅ {completedDate.format(dateDisplayFormat)}</span>
+    </span>
+  );
+}
+
 export function RelativeDate({ item, stateManager }: DateProps) {
   const shouldShowRelativeDate = stateManager.useSetting('show-relative-date');
 

@@ -13,7 +13,10 @@ export function hydrateLane(stateManager: StateManager, lane: Lane) {
 }
 
 export function preprocessTitle(stateManager: StateManager, title: string) {
-  const getDateColor = getDateColorFn(stateManager.getSetting('date-colors'));
+  const getDateColor = getDateColorFn(
+    stateManager.getSetting('date-colors'),
+    stateManager.getSetting('due-date-coloring')
+  );
   const dateTrigger = stateManager.getSetting('date-trigger');
   const dateFormat = stateManager.getSetting('date-format');
   const dateDisplayFormat = stateManager.getSetting('date-display-format');
@@ -119,6 +122,10 @@ export function hydrateItem(stateManager: StateManager, item: Item) {
     item.data.metadata.time = time;
   }
 
+  if (item.data.metadata.completedDateStr) {
+    item.data.metadata.completedDate = moment(item.data.metadata.completedDateStr, 'YYYY-MM-DD');
+  }
+
   if (fileAccessor) {
     const file = stateManager.app.metadataCache.getFirstLinkpathDest(
       fileAccessor.target,
@@ -154,7 +161,7 @@ export function hydrateBoard(stateManager: StateManager, board: Board): Board {
 function opAffectsHydration(op: Op) {
   return (
     (op.op === 'add' || op.op === 'replace') &&
-    ['title', 'titleRaw', 'dateStr', 'timeStr', /\d$/, /\/fileAccessor\/.+$/].some((postFix) => {
+    ['title', 'titleRaw', 'dateStr', 'timeStr', 'completedDateStr', /\d$/, /\/fileAccessor\/.+$/].some((postFix) => {
       if (typeof postFix === 'string') {
         return op.path.last().toString().endsWith(postFix);
       } else {

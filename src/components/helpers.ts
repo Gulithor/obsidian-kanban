@@ -33,6 +33,43 @@ export function generateInstanceId(len: number = 9): string {
     .slice(2, 2 + len);
 }
 
+const KANBAN_DONE_RE = /\s*\[kanban-done::\s*[^\]]+\]/g;
+
+function applyCompletionDate(item: Item, newShouldComplete: boolean): Item {
+  if (newShouldComplete) {
+    const today = moment().format('YYYY-MM-DD');
+    const newRaw = item.data.titleRaw.replace(KANBAN_DONE_RE, '') + ` [kanban-done:: ${today}]`;
+    KANBAN_DONE_RE.lastIndex = 0;
+    return update(item, {
+      data: {
+        titleRaw: { $set: newRaw },
+        title: { $set: item.data.title.replace(KANBAN_DONE_RE, '').trim() },
+        titleSearch: { $set: item.data.titleSearch.replace(KANBAN_DONE_RE, '').trim() },
+        titleSearchRaw: { $set: item.data.titleSearchRaw.replace(KANBAN_DONE_RE, '').trim() },
+        metadata: {
+          completedDateStr: { $set: today },
+          completedDate: { $set: moment(today, 'YYYY-MM-DD') },
+        },
+      },
+    });
+  } else {
+    const newRaw = item.data.titleRaw.replace(KANBAN_DONE_RE, '').trim();
+    KANBAN_DONE_RE.lastIndex = 0;
+    return update(item, {
+      data: {
+        titleRaw: { $set: newRaw },
+        title: { $set: item.data.title.replace(KANBAN_DONE_RE, '').trim() },
+        titleSearch: { $set: item.data.titleSearch.replace(KANBAN_DONE_RE, '').trim() },
+        titleSearchRaw: { $set: item.data.titleSearchRaw.replace(KANBAN_DONE_RE, '').trim() },
+        metadata: {
+          completedDateStr: { $set: undefined },
+          completedDate: { $set: undefined },
+        },
+      },
+    });
+  }
+}
+
 export function maybeCompleteForMove(
   sourceStateManager: StateManager,
   sourceBoard: Board,
@@ -68,10 +105,17 @@ export function maybeCompleteForMove(
     let replacement: Item;
 
     itemStrings.forEach((str, i) => {
+      // Strip any pre-existing kanban-done marker before reparsing
+      const cleanStr = str.replace(KANBAN_DONE_RE, '').trim();
+      KANBAN_DONE_RE.lastIndex = 0;
+
       if (i === thisIndex) {
-        next = destinationStateManager.getNewItem(str, checkChars[i]);
+        next = applyCompletionDate(
+          destinationStateManager.getNewItem(cleanStr, checkChars[i]),
+          newShouldComplete
+        );
       } else {
-        replacement = destinationStateManager.getNewItem(str, checkChars[i]);
+        replacement = destinationStateManager.getNewItem(cleanStr, checkChars[i]);
       }
     });
 
@@ -79,18 +123,16 @@ export function maybeCompleteForMove(
   }
 
   // It's different, update it
-  return {
-    next: update(item, {
-      data: {
-        checked: {
-          $set: newShouldComplete,
-        },
-        checkChar: {
-          $set: newShouldComplete ? getTaskStatusDone() : ' ',
-        },
-      },
-    }),
-  };
+  let next = update(item, {
+    data: {
+      checked: { $set: newShouldComplete },
+      checkChar: { $set: newShouldComplete ? getTaskStatusDone() : ' ' },
+    },
+  });
+
+  next = applyCompletionDate(next, newShouldComplete);
+
+  return { next };
 }
 
 export function useIMEInputProps() {
@@ -242,8 +284,22 @@ export function useGetTagColorFn(stateManager: StateManager): (tag: string) => T
   return useMemo(() => getTagColorFn(tagColors), [tagColors]);
 }
 
-export function getDateColorFn(dateColors: DateColor[]) {
-  const orders = (dateColors || []).map<[moment.Moment | 'today' | 'before' | 'after', DateColor]>(
+const AUTO_OVERDUE: DateColor = { isBefore: true, color: 'var(--color-red)', backgroundColor: '' };
+const AUTO_TODAY: DateColor = { isToday: true, color: 'var(--color-orange)', backgroundColor: '' };
+const AUTO_APPROACHING: DateColor = {
+  direction: 'after',
+  distance: 7,
+  unit: 'days',
+  color: 'var(--color-yellow)',
+  backgroundColor: '',
+};
+
+export function getDateColorFn(dateColors: DateColor[], dueDateColoring?: boolean) {
+  const allColors = dueDateColoring
+    ? [AUTO_OVERDUE, AUTO_TODAY, AUTO_APPROACHING, ...(dateColors || [])]
+    : dateColors || [];
+
+  const orders = allColors.map<[moment.Moment | 'today' | 'before' | 'after', DateColor]>(
     (c) => {
       if (c.isToday) {
         return ['today', c];
@@ -316,7 +372,8 @@ export function useGetDateColorFn(
   stateManager: StateManager
 ): (date: moment.Moment) => DateColor | null {
   const dateColors = stateManager.useSetting('date-colors');
-  return useMemo(() => getDateColorFn(dateColors), [dateColors]);
+  const dueDateColoring = stateManager.useSetting('due-date-coloring');
+  return useMemo(() => getDateColorFn(dateColors, dueDateColoring), [dateColors, dueDateColoring]);
 }
 
 export function parseMetadataWithOptions(data: InlineField, metadataKeys: DataKey[]): PageData {
