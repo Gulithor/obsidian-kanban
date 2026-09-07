@@ -1884,6 +1884,10 @@ body:not(.native-scrollbars) .kanban-plugin__scroll-container::-webkit-scrollbar
   border-top: 2px solid var(--color-red);
 }
 
+.kanban-plugin__lane[data-lane-color] .kanban-plugin__item.is-urgent {
+  border-left: none;
+}
+
 .kanban-plugin__item-urgent-icon {
   display: flex;
   align-items: center;

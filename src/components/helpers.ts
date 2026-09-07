@@ -34,12 +34,17 @@ export function generateInstanceId(len: number = 9): string {
 }
 
 const KANBAN_DONE_RE = /\s*\[kanban-done::\s*[^\]]+\]/g;
+const KANBAN_URGENT_RE = /\s*\[kanban-urgent::\s*true\]/g;
 
 function applyCompletionDate(item: Item, newShouldComplete: boolean): Item {
   if (newShouldComplete) {
     const today = moment().format('YYYY-MM-DD');
-    const newRaw = item.data.titleRaw.replace(KANBAN_DONE_RE, '') + ` [kanban-done:: ${today}]`;
+    const newRaw = item.data.titleRaw
+      .replace(KANBAN_DONE_RE, '')
+      .replace(KANBAN_URGENT_RE, '')
+      .trimEnd() + ` [kanban-done:: ${today}]`;
     KANBAN_DONE_RE.lastIndex = 0;
+    KANBAN_URGENT_RE.lastIndex = 0;
     return update(item, {
       data: {
         titleRaw: { $set: newRaw },
@@ -49,6 +54,7 @@ function applyCompletionDate(item: Item, newShouldComplete: boolean): Item {
         metadata: {
           completedDateStr: { $set: today },
           completedDate: { $set: moment(today, 'YYYY-MM-DD') },
+          urgent: { $set: undefined },
         },
       },
     });
@@ -105,9 +111,10 @@ export function maybeCompleteForMove(
     let replacement: Item;
 
     itemStrings.forEach((str, i) => {
-      // Strip any pre-existing kanban-done marker before reparsing
-      const cleanStr = str.replace(KANBAN_DONE_RE, '').trim();
+      // Strip any pre-existing kanban-done and urgent markers before reparsing
+      const cleanStr = str.replace(KANBAN_DONE_RE, '').replace(KANBAN_URGENT_RE, '').trim();
       KANBAN_DONE_RE.lastIndex = 0;
+      KANBAN_URGENT_RE.lastIndex = 0;
 
       if (i === thisIndex) {
         next = applyCompletionDate(
