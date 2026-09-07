@@ -130,13 +130,7 @@ export function useSettingsMenu({ setEditState, path, lane }: UseSettingsMenuPar
 
         laneColors.forEach((entry) => {
           submenu.addItem((i: any) => {
-            const frag = document.createDocumentFragment();
-            const dot = frag.appendChild(document.createElement('span'));
-            dot.className = c('lane-color-dot');
-            dot.style.backgroundColor = entry.color;
-            frag.appendChild(document.createTextNode(entry.name || '(unnamed)'));
-
-            i.setTitle(frag)
+            i.setTitle(entry.name || '(unnamed)')
               .setChecked(lane.data.laneColor === entry.name)
               .onClick(() => {
                 boardModifiers.updateLane(
@@ -144,6 +138,14 @@ export function useSettingsMenu({ setEditState, path, lane }: UseSettingsMenuPar
                   update(lane, { data: { laneColor: { $set: entry.name } } })
                 );
               });
+
+            // Inject color dot directly into the menu item's title element
+            if (i.titleEl) {
+              const dot = document.createElement('span');
+              dot.className = c('lane-color-dot');
+              dot.style.backgroundColor = entry.color;
+              i.titleEl.prepend(dot);
+            }
           });
         });
       })
