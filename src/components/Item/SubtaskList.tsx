@@ -431,7 +431,7 @@ export function SubtaskList({
       )}
       {hasSubtaskContent && (
         <>
-          {description && <div className={c('item-subtasks-header')}>{t('Subtasks')}</div>}
+          <div className={description ? `${c('item-subtasks-header')} ${c('item-subtasks-header--divided')}` : c('item-subtasks-header')}>{t('Subtasks')}</div>
           {subtasks.map((subtask, i) => (
             <div key={i} className={c('item-subtask')}>
               <label className={c('item-subtask-label')}>
