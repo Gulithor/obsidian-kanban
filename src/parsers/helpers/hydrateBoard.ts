@@ -126,6 +126,7 @@ export function hydrateItem(stateManager: StateManager, item: Item) {
     item.data.metadata.completedDate = moment(item.data.metadata.completedDateStr, 'YYYY-MM-DD');
   }
 
+
   if (fileAccessor) {
     const file = stateManager.app.metadataCache.getFirstLinkpathDest(
       fileAccessor.target,

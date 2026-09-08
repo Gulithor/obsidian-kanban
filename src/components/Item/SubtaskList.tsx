@@ -115,6 +115,16 @@ async function toggleSubtaskInFile(app: any, file: TFile, lineIndex: number, che
   await app.vault.modify(file, lines.join('\n'));
 }
 
+async function updateSubtaskInFile(app: any, file: TFile, lineIndex: number, newText: string) {
+  const content = await app.vault.read(file);
+  const lines = content.split('\n');
+  const m = lines[lineIndex].match(/^(\s*-\s+\[[^\]]*\]\s+)/i);
+  if (m) {
+    lines[lineIndex] = `${m[1]}${newText}`;
+    await app.vault.modify(file, lines.join('\n'));
+  }
+}
+
 async function deleteSubtaskFromFile(app: any, file: TFile, lineIndex: number) {
   const content = await app.vault.read(file);
   const lines = content.split('\n');
@@ -193,6 +203,9 @@ export function SubtaskList({
   const [isEditingDesc, setIsEditingDesc] = useState(false);
   const [descEditValue, setDescEditValue] = useState('');
   const [inputValue, setInputValue] = useState('');
+  const [editingSubtaskIndex, setEditingSubtaskIndex] = useState<number | null>(null);
+  const [editingSubtaskValue, setEditingSubtaskValue] = useState('');
+  const subtaskEditCancelRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const descTextareaRef = useRef<HTMLTextAreaElement>(null);
   const descCancelRef = useRef(false);
@@ -364,6 +377,16 @@ export function SubtaskList({
     [file, app]
   );
 
+  const handleSubtaskEditSave = useCallback(
+    async (subtask: Subtask, newText: string) => {
+      setEditingSubtaskIndex(null);
+      const trimmed = newText.trim();
+      if (!trimmed || trimmed === subtask.text || !file) return;
+      await updateSubtaskInFile(app, file, subtask.lineIndex, trimmed);
+    },
+    [file, app]
+  );
+
   const handleSubmit = useCallback(async () => {
     const text = inputValue.trim();
 
@@ -452,21 +475,50 @@ export function SubtaskList({
           <div className={description ? `${c('item-subtasks-header')} ${c('item-subtasks-header--divided')}` : c('item-subtasks-header')}>{t('Subtasks')}</div>
           {subtasks.map((subtask, i) => (
             <div key={i} className={c('item-subtask')}>
-              <label className={c('item-subtask-label')}>
+              <input
+                type="checkbox"
+                className="task-list-item-checkbox"
+                checked={subtask.checked}
+                onChange={() => handleToggle(subtask)}
+              />
+              {editingSubtaskIndex === i ? (
                 <input
-                  type="checkbox"
-                  className="task-list-item-checkbox"
-                  checked={subtask.checked}
-                  onChange={() => handleToggle(subtask)}
+                  data-ignore-drag={true}
+                  className={c('item-subtask-edit')}
+                  value={editingSubtaskValue}
+                  onInput={(e) => setEditingSubtaskValue((e.target as HTMLInputElement).value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSubtaskEditSave(subtask, editingSubtaskValue);
+                    } else if (e.key === 'Escape') {
+                      subtaskEditCancelRef.current = true;
+                      setEditingSubtaskIndex(null);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (subtaskEditCancelRef.current) {
+                      subtaskEditCancelRef.current = false;
+                      return;
+                    }
+                    handleSubtaskEditSave(subtask, editingSubtaskValue);
+                  }}
+                  autoFocus
                 />
+              ) : (
                 <span
                   className={
                     subtask.checked ? c('item-subtask-text--done') : c('item-subtask-text')
                   }
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setEditingSubtaskValue(subtask.text);
+                    setEditingSubtaskIndex(i);
+                  }}
                 >
                   {subtask.text}
                 </span>
-              </label>
+              )}
               <TrashButton onClick={() => handleDelete(subtask)} />
             </div>
           ))}

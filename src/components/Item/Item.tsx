@@ -152,6 +152,14 @@ const ItemInner = memo(function ItemInner({
             <Icon name="lucide-flag" />
           </span>
         )}
+        {item.data.metadata.recurring && (
+          <span
+            className={c('item-recurring-icon')}
+            aria-label={`Recurring: ${item.data.metadata.recurring}`}
+          >
+            <Icon name="lucide-repeat" />
+          </span>
+        )}
         <ItemMenuButton editState={editState} setEditState={setEditState} showMenu={showItemMenu} />
       </div>
       <ItemMetadata searchQuery={isMatch ? searchQuery : undefined} item={item} />

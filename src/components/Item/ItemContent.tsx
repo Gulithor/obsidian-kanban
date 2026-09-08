@@ -266,6 +266,12 @@ export const ItemContent = memo(function ItemContent({
   );
 
   if (!isStatic && isEditing(editState)) {
+    // Strip auto-managed fields from editor display so users don't see or accidentally edit them
+    const AUTO_FIELDS_RE = /\s*\[kanban-done::\s*[^\]]+\]/g;
+    const editorRaw = item.data.titleRaw.replace(AUTO_FIELDS_RE, '').trim();
+    const autoFieldMatches = item.data.titleRaw.match(/\[kanban-done::[^\]]+\]/g) ?? [];
+    const autoFieldsSuffix = autoFieldMatches.map((f) => f.trim()).join(' ');
+
     return (
       <div className={c('item-input-wrapper')}>
         <MarkdownEditor
@@ -274,10 +280,11 @@ export const ItemContent = memo(function ItemContent({
           onEnter={onEnter}
           onEscape={onEscape}
           onSubmit={onSubmit}
-          value={item.data.titleRaw}
+          value={editorRaw}
           onChange={(update) => {
             if (update.docChanged) {
-              titleRef.current = update.state.doc.toString().trim();
+              const newTitle = update.state.doc.toString().trim();
+              titleRef.current = autoFieldsSuffix ? `${newTitle} ${autoFieldsSuffix}` : newTitle;
             }
           }}
         />

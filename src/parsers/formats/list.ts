@@ -213,6 +213,17 @@ export function listItemToItemData(stateManager: StateManager, md: string, item:
     itemData.titleSearchRaw = itemData.titleSearchRaw.replace(KANBAN_BLOCKER_RE, '').trim();
   }
 
+  // Extract and remove recurring rule stored as [kanban-recurring:: rule]
+  const KANBAN_RECURRING_RE = /\s*\[kanban-recurring::\s*([^\]]+)\]/g;
+  const recurringMatch = KANBAN_RECURRING_RE.exec(itemData.titleRaw);
+  if (recurringMatch) {
+    itemData.metadata.recurring = recurringMatch[1].trim();
+    KANBAN_RECURRING_RE.lastIndex = 0;
+    itemData.title = itemData.title.replace(KANBAN_RECURRING_RE, '').trim();
+    itemData.titleSearch = itemData.titleSearch.replace(KANBAN_RECURRING_RE, '').trim();
+    itemData.titleSearchRaw = itemData.titleSearchRaw.replace(KANBAN_RECURRING_RE, '').trim();
+  }
+
   // Extract and remove kanban completion date stored as [kanban-done:: YYYY-MM-DD]
   const KANBAN_DONE_RE = /\s*\[kanban-done::\s*([^\]]+)\]/g;
   const doneMatch = KANBAN_DONE_RE.exec(itemData.titleRaw);

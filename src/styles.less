@@ -940,6 +940,23 @@ button.kanban-plugin__new-item-button {
   text-decoration: line-through;
 }
 
+.kanban-plugin__item-subtask-text,
+.kanban-plugin__item-subtask-text--done {
+  cursor: text;
+  flex: 1;
+}
+
+.kanban-plugin__item-subtask-edit {
+  flex: 1;
+  min-width: 0;
+  font-size: inherit;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border-focus);
+  border-radius: var(--radius-s);
+  padding: 1px 4px;
+  color: var(--text-normal);
+}
+
 .kanban-plugin__item-subtask-input-wrapper {
   padding-block-start: 2px;
 }
@@ -1987,6 +2004,19 @@ body:not(.native-scrollbars) .kanban-plugin__scroll-container::-webkit-scrollbar
   align-items: center;
   flex-shrink: 0;
   color: var(--color-red);
+  margin-right: 2px;
+
+  .kanban-plugin__icon {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.kanban-plugin__item-recurring-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--color-blue);
   margin-right: 2px;
 
   .kanban-plugin__icon {

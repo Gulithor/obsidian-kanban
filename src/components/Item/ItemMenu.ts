@@ -3,11 +3,12 @@ import { Menu, Platform, TFile, TFolder } from 'obsidian';
 import { Dispatch, StateUpdater, useCallback } from 'preact/hooks';
 import { StateManager } from 'src/StateManager';
 import { Path } from 'src/dnd/types';
-import { moveEntity } from 'src/dnd/util/data';
+import { insertEntity, moveEntity } from 'src/dnd/util/data';
 import { t } from 'src/lang/helpers';
 
 import { BoardModifiers } from '../../helpers/boardModifiers';
 import { BlockerModal } from './BlockerModal';
+import { RecurringModal } from './RecurringModal';
 import { DeleteCardModal } from './DeleteCardModal';
 import { applyTemplate, escapeRegExpStr, generateInstanceId, maybeCompleteForMove } from '../helpers';
 import { DataTypes, EditState, Item } from '../types';
@@ -302,6 +303,38 @@ export function useItemMenu({
             });
         })
         .addItem((i) => {
+          const hasRecurring = !!item.data.metadata.recurring;
+          i.setIcon('lucide-repeat')
+            .setTitle(hasRecurring ? t('Edit recurring') : t('Set recurring'))
+            .onClick(() => {
+              new RecurringModal(
+                stateManager.app,
+                item.data.metadata.recurring ?? 'weekly',
+                (rule) => {
+                  const RECURRING_RE = /\s*\[kanban-recurring::\s*[^\]]+\]/g;
+                  const stripped = item.data.titleRaw.replace(RECURRING_RE, '').trimEnd();
+                  boardModifiers.updateItem(
+                    path,
+                    stateManager.updateItemContent(item, `${stripped} [kanban-recurring:: ${rule}]`)
+                  );
+                }
+              ).open();
+            });
+        });
+
+      if (item.data.metadata.recurring) {
+        menu.addItem((i) => {
+          i.setIcon('lucide-repeat-2')
+            .setTitle(t('Remove recurring'))
+            .onClick(() => {
+              const RECURRING_RE = /\s*\[kanban-recurring::\s*[^\]]+\]/g;
+              const newTitleRaw = item.data.titleRaw.replace(RECURRING_RE, '').trim();
+              boardModifiers.updateItem(path, stateManager.updateItemContent(item, newTitleRaw));
+            });
+        });
+      }
+
+      menu.addItem((i) => {
           const hasBlocker = !!item.data.metadata.blocker;
           i.setIcon('lucide-flag')
             .setTitle(hasBlocker ? t('Edit blocker') : t('Add blocker'))
@@ -357,17 +390,23 @@ export function useItemMenu({
                 if (path[0] === i) return;
                 const destPath: Path = [i, 0];
                 stateManager.setState((boardData) => {
-                  return moveEntity(boardData, path, destPath, (entity) => {
+                  let recurringItem: Item | undefined;
+                  let newBoard = moveEntity(boardData, path, destPath, (entity) => {
                     if (entity.type === DataTypes.Item) {
-                      const { next } = maybeCompleteForMove(
+                      const { next, recurringItem: ri } = maybeCompleteForMove(
                         stateManager, boardData, path,
                         stateManager, boardData, destPath,
                         entity
                       );
+                      recurringItem = ri;
                       return next;
                     }
                     return entity;
                   });
+                  if (recurringItem) {
+                    newBoard = insertEntity(newBoard, [path[0], 0], [recurringItem]);
+                  }
+                  return newBoard;
                 });
               })
           );

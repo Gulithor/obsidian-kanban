@@ -113,13 +113,14 @@ export function DragDropApp({ win, plugin }: { win: Window; plugin: KanbanPlugin
 
         return stateManager.setState((board) => {
           const entity = getEntityFromPath(board, dragPath);
-          const newBoard: Board = moveEntity(
+          let recurringItem: Item | undefined;
+          let newBoard: Board = moveEntity(
             board,
             dragPath,
             dropPath,
             (entity) => {
               if (entity.type === DataTypes.Item) {
-                const { next } = maybeCompleteForMove(
+                const { next, recurringItem: ri } = maybeCompleteForMove(
                   stateManager,
                   board,
                   dragPath,
@@ -128,6 +129,7 @@ export function DragDropApp({ win, plugin }: { win: Window; plugin: KanbanPlugin
                   dropPath,
                   entity
                 );
+                recurringItem = ri;
                 return next;
               }
               return entity;
@@ -147,6 +149,10 @@ export function DragDropApp({ win, plugin }: { win: Window; plugin: KanbanPlugin
               }
             }
           );
+
+          if (recurringItem) {
+            newBoard = insertEntity(newBoard, [dragPath[0], 0], [recurringItem]);
+          }
 
           if (entity.type === DataTypes.Lane) {
             const from = dragPath.last();
@@ -192,6 +198,7 @@ export function DragDropApp({ win, plugin }: { win: Window; plugin: KanbanPlugin
       sourceStateManager.setState((sourceBoard) => {
         const entity = getEntityFromPath(sourceBoard, dragPath);
         let replacementEntity: Nestable;
+        let recurringItem: Item | undefined;
 
         destinationStateManager.setState((destinationBoard) => {
           if (inDropArea) {
@@ -207,7 +214,7 @@ export function DragDropApp({ win, plugin }: { win: Window; plugin: KanbanPlugin
           const toInsert: Nestable[] = [];
 
           if (entity.type === DataTypes.Item) {
-            const { next, replacement } = maybeCompleteForMove(
+            const { next, replacement, recurringItem: ri } = maybeCompleteForMove(
               sourceStateManager,
               sourceBoard,
               dragPath,
@@ -217,6 +224,7 @@ export function DragDropApp({ win, plugin }: { win: Window; plugin: KanbanPlugin
               entity
             );
             replacementEntity = replacement;
+            recurringItem = ri;
             toInsert.push(next);
           } else {
             toInsert.push(entity);
@@ -254,7 +262,10 @@ export function DragDropApp({ win, plugin }: { win: Window; plugin: KanbanPlugin
             data: { settings: { 'list-collapse': { $set: op(collapsedState) } } },
           });
         } else {
-          return removeEntity(sourceBoard, dragPath, replacementEntity);
+          const withRemoved = removeEntity(sourceBoard, dragPath, replacementEntity);
+          return recurringItem
+            ? insertEntity(withRemoved, [dragPath[0], 0], [recurringItem])
+            : withRemoved;
         }
       });
     },

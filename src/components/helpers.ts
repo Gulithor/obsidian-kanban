@@ -35,6 +35,39 @@ export function generateInstanceId(len: number = 9): string {
 
 const KANBAN_DONE_RE = /\s*\[kanban-done::\s*[^\]]+\]/g;
 const KANBAN_URGENT_RE = /\s*\[kanban-urgent::\s*true\]/g;
+function computeNextDueDate(currentDate: moment.Moment | undefined, rule: string): moment.Moment {
+  const base = currentDate ? currentDate.clone() : moment().startOf('day');
+  const lc = rule.toLowerCase().trim();
+  if (lc === 'daily') return base.add(1, 'day');
+  if (lc === 'weekly') return base.add(1, 'week');
+  if (lc === 'biweekly') return base.add(2, 'weeks');
+  if (lc === 'monthly') return base.add(1, 'month');
+  return base.add(1, 'week');
+}
+
+function buildRecurringItem(item: Item, stateManager: StateManager): Item | undefined {
+  const rule = item.data.metadata.recurring;
+  if (!rule) return undefined;
+
+  const nextDate = computeNextDueDate(item.data.metadata.date, rule);
+  const dateFormat = (stateManager.getSetting('date-format') as string) || 'YYYY-MM-DD';
+  const dateTrigger = (stateManager.getSetting('date-trigger') as string) || '@';
+
+  KANBAN_DONE_RE.lastIndex = 0;
+  let newRaw = item.data.titleRaw.replace(KANBAN_DONE_RE, '').trim();
+  KANBAN_DONE_RE.lastIndex = 0;
+
+  if (item.data.metadata.date) {
+    const escapedTrigger = dateTrigger.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const dateTriggerRe = new RegExp(`${escapedTrigger}\\{[^}]*\\}`);
+    const newDateStr = nextDate.format(dateFormat);
+    newRaw = dateTriggerRe.test(newRaw)
+      ? newRaw.replace(dateTriggerRe, `${dateTrigger}{${newDateStr}}`)
+      : `${newRaw.trimEnd()} ${dateTrigger}{${newDateStr}}`;
+  }
+
+  return stateManager.getNewItem(newRaw, ' ');
+}
 
 function applyCompletionDate(item: Item, newShouldComplete: boolean): Item {
   if (newShouldComplete) {
@@ -84,7 +117,7 @@ export function maybeCompleteForMove(
   destinationBoard: Board,
   destinationPath: Path,
   item: Item
-): { next: Item; replacement?: Item } {
+): { next: Item; replacement?: Item; recurringItem?: Item } {
   const sourceParent = getEntityFromPath(sourceBoard, sourcePath.slice(0, -1));
   const destinationParent = getEntityFromPath(destinationBoard, destinationPath.slice(0, -1));
 
@@ -126,7 +159,8 @@ export function maybeCompleteForMove(
       }
     });
 
-    return { next, replacement };
+    const recurringItem = newShouldComplete ? buildRecurringItem(item, sourceStateManager) : undefined;
+    return { next, replacement, recurringItem };
   }
 
   // It's different, update it
@@ -139,7 +173,8 @@ export function maybeCompleteForMove(
 
   next = applyCompletionDate(next, newShouldComplete);
 
-  return { next };
+  const recurringItem = newShouldComplete ? buildRecurringItem(item, sourceStateManager) : undefined;
+  return { next, recurringItem };
 }
 
 export function useIMEInputProps() {
