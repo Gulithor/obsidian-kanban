@@ -85,6 +85,8 @@ export interface ItemContentProps {
   isStatic: boolean;
   showAddSubtask?: boolean;
   onAddSubtaskComplete?: () => void;
+  showAddDescription?: boolean;
+  onAddDescriptionComplete?: () => void;
 }
 
 function checkCheckbox(stateManager: StateManager, title: string, checkboxIndex: number) {
@@ -192,6 +194,8 @@ export const ItemContent = memo(function ItemContent({
   isStatic,
   showAddSubtask,
   onAddSubtaskComplete,
+  showAddDescription,
+  onAddDescriptionComplete,
 }: ItemContentProps) {
   const { stateManager, filePath, boardModifiers } = useContext(KanbanContext);
   const getDateColor = useGetDateColorFn(stateManager);
@@ -303,6 +307,8 @@ export const ItemContent = memo(function ItemContent({
         stateManager={stateManager}
         showAddInput={!!showAddSubtask}
         onAddComplete={onAddSubtaskComplete ?? (() => {})}
+        showAddDescription={!!showAddDescription}
+        onAddDescriptionComplete={onAddDescriptionComplete ?? (() => {})}
       />
       {showMetadata && (
         <div className={c('item-metadata')}>

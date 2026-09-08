@@ -27,6 +27,7 @@ const condenceWhiteSpaceRE = /\s+/g;
 interface UseItemMenuParams {
   setEditState: Dispatch<StateUpdater<EditState>>;
   setShowAddSubtask: (v: boolean) => void;
+  setShowAddDescription: (v: boolean) => void;
   item: Item;
   path: Path;
   boardModifiers: BoardModifiers;
@@ -36,6 +37,7 @@ interface UseItemMenuParams {
 export function useItemMenu({
   setEditState,
   setShowAddSubtask,
+  setShowAddDescription,
   item,
   path,
   boardModifiers,
@@ -297,6 +299,11 @@ export function useItemMenu({
             });
         })
         .addItem((i) => {
+          i.setIcon('lucide-text')
+            .setTitle(t('Edit description'))
+            .onClick(() => setShowAddDescription(true));
+        })
+        .addItem((i) => {
           i.setIcon('lucide-list-checks')
             .setTitle(t('Add new subtask'))
             .onClick(() => setShowAddSubtask(true));
@@ -348,6 +355,6 @@ export function useItemMenu({
 
       menu.showAtPosition(coordinates);
     },
-    [setEditState, setShowAddSubtask, item, path, boardModifiers, stateManager]
+    [setEditState, setShowAddSubtask, setShowAddDescription, item, path, boardModifiers, stateManager]
   );
 }

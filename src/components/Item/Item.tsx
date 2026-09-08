@@ -50,6 +50,7 @@ const ItemInner = memo(function ItemInner({
   const { stateManager, boardModifiers } = useContext(KanbanContext);
   const [editState, setEditState] = useState<EditState>(EditingState.cancel);
   const [showAddSubtask, setShowAddSubtask] = useState(false);
+  const [showAddDescription, setShowAddDescription] = useState(false);
 
   const dndManager = useContext(DndManagerContext);
 
@@ -77,6 +78,7 @@ const ItemInner = memo(function ItemInner({
     item,
     setEditState: setEditState,
     setShowAddSubtask,
+    setShowAddDescription,
     stateManager,
     path,
   });
@@ -134,6 +136,8 @@ const ItemInner = memo(function ItemInner({
           isStatic={isStatic}
           showAddSubtask={showAddSubtask}
           onAddSubtaskComplete={() => setShowAddSubtask(false)}
+          showAddDescription={showAddDescription}
+          onAddDescriptionComplete={() => setShowAddDescription(false)}
         />
         {item.data.metadata.urgent && (
           <span className={c('item-urgent-icon')} aria-label="Urgent">

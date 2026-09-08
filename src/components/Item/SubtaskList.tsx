@@ -4,6 +4,7 @@ import { useCallback, useContext, useEffect, useRef, useState } from 'preact/hoo
 import { Icon } from '../Icon/Icon';
 import { StateManager } from 'src/StateManager';
 import { useNestedEntityPath } from 'src/dnd/components/Droppable';
+import { t } from 'src/lang/helpers';
 
 import { KanbanContext } from '../context';
 import { c } from '../helpers';
@@ -45,6 +46,64 @@ function parseSubtasks(content: string): Subtask[] {
   }
 
   return result;
+}
+
+function parseDescription(content: string): string {
+  const lines = content.split('\n');
+  let inSection = false;
+  const result: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^#{1,6}\s+Description\s*$/i.test(line)) {
+      inSection = true;
+      continue;
+    }
+    if (inSection && /^#{1,6}\s/.test(line)) break;
+    if (inSection) result.push(line);
+  }
+
+  return result.join('\n').trim();
+}
+
+async function saveDescriptionToFile(app: any, file: TFile, newDesc: string) {
+  let content = await app.vault.read(file);
+  const hasSection = /^#{1,6}\s+Description\s*$/im.test(content);
+
+  if (hasSection) {
+    const lines = content.split('\n');
+    let start = -1;
+    let end = -1;
+    let inSection = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      if (/^#{1,6}\s+Description\s*$/i.test(lines[i])) {
+        start = i + 1;
+        inSection = true;
+        continue;
+      }
+      if (inSection && /^#{1,6}\s/.test(lines[i])) {
+        end = i;
+        break;
+      }
+    }
+    if (end === -1) end = lines.length;
+
+    const replacement = newDesc ? ['', newDesc, ''] : [''];
+    lines.splice(start, end - start, ...replacement);
+    content = lines.join('\n');
+  } else {
+    if (/^#{1,6}\s+Subtasks\s*$/im.test(content)) {
+      content = content.replace(
+        /^(#{1,6}\s+Subtasks\s*$)/im,
+        `## Description\n\n${newDesc}\n\n$1`
+      );
+    } else {
+      content = `## Description\n\n${newDesc}\n\n` + content.trimStart();
+    }
+  }
+
+  await app.vault.modify(file, content);
 }
 
 async function toggleSubtaskInFile(app: any, file: TFile, lineIndex: number, checked: boolean) {
@@ -113,14 +172,29 @@ export interface SubtaskListProps {
   stateManager: StateManager;
   showAddInput: boolean;
   onAddComplete: () => void;
+  showAddDescription: boolean;
+  onAddDescriptionComplete: () => void;
 }
 
-export function SubtaskList({ item, stateManager, showAddInput, onAddComplete }: SubtaskListProps) {
+export function SubtaskList({
+  item,
+  stateManager,
+  showAddInput,
+  onAddComplete,
+  showAddDescription,
+  onAddDescriptionComplete,
+}: SubtaskListProps) {
   const { boardModifiers } = useContext(KanbanContext);
   const path = useNestedEntityPath();
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
+  const [description, setDescription] = useState('');
+  const [isEditingDesc, setIsEditingDesc] = useState(false);
+  const [descEditValue, setDescEditValue] = useState('');
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const descTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const descCancelRef = useRef(false);
+  const pendingDescEdit = useRef(false);
   const app = stateManager.app as any;
 
   const file = item.data.metadata.file;
@@ -128,6 +202,7 @@ export function SubtaskList({ item, stateManager, showAddInput, onAddComplete }:
   useEffect(() => {
     if (!file) {
       setSubtasks([]);
+      setDescription('');
       return;
     }
 
@@ -136,9 +211,15 @@ export function SubtaskList({ item, stateManager, showAddInput, onAddComplete }:
     const load = async () => {
       try {
         const content = await app.vault.read(file);
-        if (!cancelled) setSubtasks(parseSubtasks(content));
+        if (!cancelled) {
+          setSubtasks(parseSubtasks(content));
+          setDescription(parseDescription(content));
+        }
       } catch {
-        if (!cancelled) setSubtasks([]);
+        if (!cancelled) {
+          setSubtasks([]);
+          setDescription('');
+        }
       }
     };
 
@@ -154,11 +235,112 @@ export function SubtaskList({ item, stateManager, showAddInput, onAddComplete }:
     };
   }, [file]);
 
+  // When file becomes available and description edit was pending (after file creation)
+  useEffect(() => {
+    if (file && pendingDescEdit.current) {
+      pendingDescEdit.current = false;
+      setDescEditValue('');
+      setIsEditingDesc(true);
+    }
+  }, [file]);
+
+  useEffect(() => {
+    if (!showAddDescription) return;
+    if (file) {
+      setDescEditValue(description);
+      setIsEditingDesc(true);
+      onAddDescriptionComplete();
+    } else {
+      pendingDescEdit.current = true;
+      createFileForItem().then(() => {
+        onAddDescriptionComplete();
+      });
+    }
+  }, [showAddDescription]);
+
+  useEffect(() => {
+    if (isEditingDesc) {
+      setTimeout(() => descTextareaRef.current?.focus(), 50);
+    }
+  }, [isEditingDesc]);
+
   useEffect(() => {
     if (showAddInput) {
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [showAddInput]);
+
+  const createFileForItem = useCallback(async (): Promise<TFile | null> => {
+    const dateTrigger = (stateManager.getSetting('date-trigger') as string) ?? '@';
+    const timeTrigger = (stateManager.getSetting('time-trigger') as string) ?? '@@';
+    const escapedTime = timeTrigger.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedDate = dateTrigger.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const timeTriggerRe = new RegExp(escapedTime + '\\{[^}]*\\}', 'g');
+    const dateTriggerRe = new RegExp(escapedDate + '\\{[^}]*\\}', 'g');
+
+    const raw = item.data.titleRaw;
+    const timeMatches = raw.match(timeTriggerRe) ?? [];
+    const dateMatches = raw.match(dateTriggerRe) ?? [];
+    const preservedSuffix = [...timeMatches, ...dateMatches].join(' ');
+
+    const noteName = raw
+      .replace(timeTriggerRe, '')
+      .replace(dateTriggerRe, '')
+      .replace(/!?\[\[.*?\]\]/g, '')
+      .replace(/\[kanban-done::[^\]]+\]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const sanitized = (noteName || 'Untitled').replace(/[\\/:*?"<>|]/g, '').trim();
+
+    const newNoteFolder = stateManager.getSetting('new-note-folder') as string | undefined;
+    const folder: TFolder = newNoteFolder
+      ? (app.vault.getAbstractFileByPath(newNoteFolder) as TFolder)
+      : (app.fileManager as any).getNewFileParent(stateManager.file.path);
+
+    const newFile = (await (app.fileManager as any).createNewMarkdownFile(
+      folder,
+      sanitized
+    )) as TFile;
+
+    const link = (app.fileManager as any).generateMarkdownLink(newFile, stateManager.file.path);
+    const newTitleRaw = preservedSuffix ? `${link} ${preservedSuffix}` : link;
+    boardModifiers.updateItem(path, stateManager.updateItemContent(item, newTitleRaw));
+
+    return newFile;
+  }, [item, app, stateManager, boardModifiers, path]);
+
+  const handleDescSave = useCallback(async () => {
+    if (!file) {
+      setIsEditingDesc(false);
+      return;
+    }
+    await saveDescriptionToFile(app, file, descEditValue.trim());
+    setIsEditingDesc(false);
+  }, [file, app, descEditValue]);
+
+  const handleDescBlur = useCallback(() => {
+    if (descCancelRef.current) {
+      descCancelRef.current = false;
+      return;
+    }
+    handleDescSave();
+  }, [handleDescSave]);
+
+  const handleDescKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        descCancelRef.current = true;
+        setIsEditingDesc(false);
+        setDescEditValue(description);
+        onAddDescriptionComplete();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        handleDescSave();
+      }
+    },
+    [handleDescSave, description, onAddDescriptionComplete]
+  );
 
   const handleToggle = useCallback(
     async (subtask: Subtask) => {
@@ -188,52 +370,13 @@ export function SubtaskList({ item, stateManager, showAddInput, onAddComplete }:
     let targetFile = file;
 
     if (!targetFile) {
-      const dateTrigger = (stateManager.getSetting('date-trigger') as string) ?? '@';
-      const timeTrigger = (stateManager.getSetting('time-trigger') as string) ?? '@@';
-      const escapedTime = timeTrigger.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const escapedDate = dateTrigger.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const timeTriggerRe = new RegExp(escapedTime + '\\{[^}]*\\}', 'g');
-      const dateTriggerRe = new RegExp(escapedDate + '\\{[^}]*\\}', 'g');
-
-      const raw = item.data.titleRaw;
-
-      // Collect the parts that need to stay outside the wikilink
-      const timeMatches = raw.match(timeTriggerRe) ?? [];
-      const dateMatches = raw.match(dateTriggerRe) ?? [];
-      // Remove time matches before date matches to avoid double-stripping (@@  contains @)
-      const preservedSuffix = [...timeMatches, ...dateMatches].join(' ');
-
-      const noteName = raw
-        .replace(timeTriggerRe, '')
-        .replace(dateTriggerRe, '')
-        .replace(/!?\[\[.*?\]\]/g, '')
-        .replace(/\[kanban-done::[^\]]+\]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-      const sanitized = (noteName || 'Untitled').replace(/[\\/:*?"<>|]/g, '').trim();
-
-      const newNoteFolder = stateManager.getSetting('new-note-folder') as string | undefined;
-      const folder: TFolder = newNoteFolder
-        ? (app.vault.getAbstractFileByPath(newNoteFolder) as TFolder)
-        : (app.fileManager as any).getNewFileParent(stateManager.file.path);
-
-      const newFile = (await (app.fileManager as any).createNewMarkdownFile(
-        folder,
-        sanitized
-      )) as TFile;
-
-      targetFile = newFile;
-
-      const link = (app.fileManager as any).generateMarkdownLink(newFile, stateManager.file.path);
-      const newTitleRaw = preservedSuffix ? `${link} ${preservedSuffix}` : link;
-      boardModifiers.updateItem(path, stateManager.updateItemContent(item, newTitleRaw));
+      targetFile = await createFileForItem();
     }
 
     await addSubtaskToFile(app, targetFile, text);
     setInputValue('');
     onAddComplete();
-  }, [inputValue, file, item, app, stateManager, boardModifiers, path, onAddComplete]);
+  }, [inputValue, file, item, app, stateManager, boardModifiers, path, onAddComplete, createFileForItem]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -246,48 +389,89 @@ export function SubtaskList({ item, stateManager, showAddInput, onAddComplete }:
     [handleSubmit, onAddComplete]
   );
 
-  if (!subtasks.length && !showAddInput) return null;
+  const hasSubtaskContent = subtasks.length > 0 || showAddInput;
+
+  if (!file && !subtasks.length && !showAddInput && !showAddDescription) return null;
 
   return (
     <div className={c('item-subtasks')}>
-      {subtasks.map((subtask, i) => (
-        <div key={i} className={c('item-subtask')}>
-          <label className={c('item-subtask-label')}>
-            <input
-              type="checkbox"
-              className="task-list-item-checkbox"
-              checked={subtask.checked}
-              onChange={() => handleToggle(subtask)}
+      {file && (
+        <div
+          className={c('item-description')}
+          onClick={
+            !isEditingDesc
+              ? () => {
+                  setDescEditValue(description);
+                  setIsEditingDesc(true);
+                }
+              : undefined
+          }
+        >
+          {isEditingDesc ? (
+            <textarea
+              ref={descTextareaRef}
+              className={c('item-description-edit')}
+              value={descEditValue}
+              onInput={(e) => setDescEditValue((e.target as HTMLTextAreaElement).value)}
+              onKeyDown={handleDescKeyDown}
+              onBlur={handleDescBlur}
+              rows={2}
+              placeholder={t('Add a description…')}
             />
+          ) : (
             <span
               className={
-                subtask.checked ? c('item-subtask-text--done') : c('item-subtask-text')
+                description ? c('item-description-text') : c('item-description-placeholder')
               }
             >
-              {subtask.text}
+              {description || t('Add a description…')}
             </span>
-          </label>
-          <TrashButton onClick={() => handleDelete(subtask)} />
+          )}
         </div>
-      ))}
-      {showAddInput && (
-        <div className={c('item-subtask-input-wrapper')}>
-          <input
-            ref={inputRef}
-            type="text"
-            className={c('item-subtask-input')}
-            placeholder="New subtask…"
-            value={inputValue}
-            onInput={(e) => setInputValue((e.target as HTMLInputElement).value)}
-            onKeyDown={handleKeyDown}
-            onBlur={() => {
-              if (!inputValue.trim()) {
-                setInputValue('');
-                onAddComplete();
-              }
-            }}
-          />
-        </div>
+      )}
+      {hasSubtaskContent && (
+        <>
+          <div className={c('item-subtasks-header')}>{t('Subtasks')}</div>
+          {subtasks.map((subtask, i) => (
+            <div key={i} className={c('item-subtask')}>
+              <label className={c('item-subtask-label')}>
+                <input
+                  type="checkbox"
+                  className="task-list-item-checkbox"
+                  checked={subtask.checked}
+                  onChange={() => handleToggle(subtask)}
+                />
+                <span
+                  className={
+                    subtask.checked ? c('item-subtask-text--done') : c('item-subtask-text')
+                  }
+                >
+                  {subtask.text}
+                </span>
+              </label>
+              <TrashButton onClick={() => handleDelete(subtask)} />
+            </div>
+          ))}
+          {showAddInput && (
+            <div className={c('item-subtask-input-wrapper')}>
+              <input
+                ref={inputRef}
+                type="text"
+                className={c('item-subtask-input')}
+                placeholder="New subtask…"
+                value={inputValue}
+                onInput={(e) => setInputValue((e.target as HTMLInputElement).value)}
+                onKeyDown={handleKeyDown}
+                onBlur={() => {
+                  if (!inputValue.trim()) {
+                    setInputValue('');
+                    onAddComplete();
+                  }
+                }}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

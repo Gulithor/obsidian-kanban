@@ -954,6 +954,59 @@ button.kanban-plugin__new-item-button {
   padding: 2px 6px;
 }
 
+.kanban-plugin__item-description {
+  padding: 2px 0 6px;
+  cursor: text;
+}
+
+.kanban-plugin__item-description-text {
+  font-size: 0.85em;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: var(--line-height-tight);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.kanban-plugin__item-description-placeholder {
+  font-size: 0.85em;
+  color: var(--text-faint);
+  font-style: italic;
+  opacity: 0;
+  transition: opacity 0.15s;
+
+  .kanban-plugin__item:hover & {
+    opacity: 1;
+  }
+}
+
+.kanban-plugin__item-description-edit {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.85em;
+  font-style: italic;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border-focus);
+  border-radius: var(--radius-s);
+  padding: 3px 6px;
+  resize: none;
+  line-height: var(--line-height-tight);
+  font-family: inherit;
+  outline: none;
+}
+
+.kanban-plugin__item-subtasks-header {
+  font-size: 0.7em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-faint);
+  padding-block: 4px 2px;
+  margin-block-start: 2px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
 .kanban-plugin__meta-table {
   width: 100%;
   margin: 0;
