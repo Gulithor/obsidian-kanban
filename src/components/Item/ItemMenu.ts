@@ -7,6 +7,7 @@ import { moveEntity } from 'src/dnd/util/data';
 import { t } from 'src/lang/helpers';
 
 import { BoardModifiers } from '../../helpers/boardModifiers';
+import { BlockerModal } from './BlockerModal';
 import { DeleteCardModal } from './DeleteCardModal';
 import { applyTemplate, escapeRegExpStr, generateInstanceId, maybeCompleteForMove } from '../helpers';
 import { DataTypes, EditState, Item } from '../types';
@@ -301,6 +302,37 @@ export function useItemMenu({
             });
         })
         .addItem((i) => {
+          const hasBlocker = !!item.data.metadata.blocker;
+          i.setIcon('lucide-flag')
+            .setTitle(hasBlocker ? t('Edit blocker') : t('Add blocker'))
+            .onClick(() => {
+              const BLOCKER_RE = /\s*\[kanban-blocker::\s*[^\]]+\]/g;
+              new BlockerModal(
+                stateManager.app,
+                item.data.metadata.blocker ?? '',
+                (desc) => {
+                  if (!desc) return;
+                  const stripped = item.data.titleRaw.replace(BLOCKER_RE, '').trimEnd();
+                  const newTitleRaw = `${stripped} [kanban-blocker:: ${desc}]`;
+                  boardModifiers.updateItem(path, stateManager.updateItemContent(item, newTitleRaw));
+                }
+              ).open();
+            });
+        });
+
+      if (item.data.metadata.blocker) {
+        menu.addItem((i) => {
+          i.setIcon('lucide-flag-off')
+            .setTitle(t('Remove blocker'))
+            .onClick(() => {
+              const BLOCKER_RE = /\s*\[kanban-blocker::\s*[^\]]+\]/g;
+              const newTitleRaw = item.data.titleRaw.replace(BLOCKER_RE, '').trim();
+              boardModifiers.updateItem(path, stateManager.updateItemContent(item, newTitleRaw));
+            });
+        });
+      }
+
+      menu.addItem((i) => {
           i.setIcon('lucide-text')
             .setTitle(hasDescription ? t('Edit description') : t('Add description'))
             .onClick(() => setShowAddDescription(true));

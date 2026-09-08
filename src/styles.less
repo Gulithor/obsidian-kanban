@@ -969,8 +969,15 @@ button.kanban-plugin__new-item-button {
 }
 
 
+.kanban-plugin__item-description-editor {
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+}
+
 .kanban-plugin__item-description-edit {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   box-sizing: border-box;
   font-size: 0.85em;
   font-style: italic;
@@ -1966,12 +1973,35 @@ body:not(.native-scrollbars) .kanban-plugin__scroll-container::-webkit-scrollbar
   border-top: 3px solid var(--color-red);
 }
 
+// Blocker border — defined after urgent so equal-specificity cascade gives blocker priority
+.kanban-plugin__item.is-blocker {
+  border-top: 3px solid var(--color-orange);
+}
+
+.kanban-plugin__lane[data-lane-color] .kanban-plugin__item.is-blocker {
+  border-top: 3px solid var(--color-orange);
+}
+
 .kanban-plugin__item-urgent-icon {
   display: flex;
   align-items: center;
   flex-shrink: 0;
   color: var(--color-red);
   margin-right: 2px;
+
+  .kanban-plugin__icon {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.kanban-plugin__item-blocker-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--color-orange);
+  margin-right: 2px;
+  cursor: default;
 
   .kanban-plugin__icon {
     width: 14px;

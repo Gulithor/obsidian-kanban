@@ -147,6 +147,11 @@ const ItemInner = memo(function ItemInner({
             <Icon name="lucide-alert-circle" />
           </span>
         )}
+        {item.data.metadata.blocker && (
+          <span className={c('item-blocker-icon')} aria-label={item.data.metadata.blocker}>
+            <Icon name="lucide-flag" />
+          </span>
+        )}
         <ItemMenuButton editState={editState} setEditState={setEditState} showMenu={showItemMenu} />
       </div>
       <ItemMetadata searchQuery={isMatch ? searchQuery : undefined} item={item} />

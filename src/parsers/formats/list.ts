@@ -202,6 +202,17 @@ export function listItemToItemData(stateManager: StateManager, md: string, item:
     itemData.titleSearchRaw = itemData.titleSearchRaw.replace(KANBAN_URGENT_RE, '').trim();
   }
 
+  // Extract and remove blocker description stored as [kanban-blocker:: description]
+  const KANBAN_BLOCKER_RE = /\s*\[kanban-blocker::\s*([^\]]+)\]/g;
+  const blockerMatch = KANBAN_BLOCKER_RE.exec(itemData.titleRaw);
+  if (blockerMatch) {
+    itemData.metadata.blocker = blockerMatch[1].trim();
+    KANBAN_BLOCKER_RE.lastIndex = 0;
+    itemData.title = itemData.title.replace(KANBAN_BLOCKER_RE, '').trim();
+    itemData.titleSearch = itemData.titleSearch.replace(KANBAN_BLOCKER_RE, '').trim();
+    itemData.titleSearchRaw = itemData.titleSearchRaw.replace(KANBAN_BLOCKER_RE, '').trim();
+  }
+
   // Extract and remove kanban completion date stored as [kanban-done:: YYYY-MM-DD]
   const KANBAN_DONE_RE = /\s*\[kanban-done::\s*([^\]]+)\]/g;
   const doneMatch = KANBAN_DONE_RE.exec(itemData.titleRaw);

@@ -299,6 +299,10 @@ export function getItemClassModifiers(item: Item) {
     classModifiers.push('is-urgent');
   }
 
+  if (item.data.metadata.blocker) {
+    classModifiers.push('is-blocker');
+  }
+
   for (const tag of item.data.metadata.tags) {
     classModifiers.push(`has-tag-${tag.slice(1)}`);
   }

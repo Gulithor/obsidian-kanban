@@ -403,6 +403,7 @@ export function SubtaskList({
     <div className={c('item-subtasks')}>
       {file && (description || isEditingDesc) && (
         <div
+          data-ignore-drag={isEditingDesc ? true : undefined}
           className={c('item-description')}
           onClick={
             !isEditingDesc
@@ -414,16 +415,33 @@ export function SubtaskList({
           }
         >
           {isEditingDesc ? (
-            <textarea
-              ref={descTextareaRef}
-              className={c('item-description-edit')}
-              value={descEditValue}
-              onInput={(e) => setDescEditValue((e.target as HTMLTextAreaElement).value)}
-              onKeyDown={handleDescKeyDown}
-              onBlur={handleDescBlur}
-              rows={2}
-              placeholder={t('Add a description…')}
-            />
+            <div className={c('item-description-editor')}>
+              <textarea
+                ref={descTextareaRef}
+                data-ignore-drag={true}
+                className={c('item-description-edit')}
+                value={descEditValue}
+                onInput={(e) => setDescEditValue((e.target as HTMLTextAreaElement).value)}
+                onKeyDown={handleDescKeyDown}
+                onBlur={handleDescBlur}
+                rows={2}
+                placeholder={t('Add a description…')}
+              />
+              <a
+                data-ignore-drag={true}
+                onPointerDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  descCancelRef.current = true;
+                  setIsEditingDesc(false);
+                  setDescEditValue(description);
+                  onAddDescriptionComplete();
+                }}
+                className={`${c('item-postfix-button')} is-enabled clickable-icon`}
+                aria-label={t('Cancel')}
+              >
+                <Icon name="lucide-x" />
+              </a>
+            </div>
           ) : (
             <span className={c('item-description-text')}>{description}</span>
           )}
