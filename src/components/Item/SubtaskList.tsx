@@ -174,6 +174,7 @@ export interface SubtaskListProps {
   onAddComplete: () => void;
   showAddDescription: boolean;
   onAddDescriptionComplete: () => void;
+  onDescriptionChange?: (hasDescription: boolean) => void;
 }
 
 export function SubtaskList({
@@ -183,6 +184,7 @@ export function SubtaskList({
   onAddComplete,
   showAddDescription,
   onAddDescriptionComplete,
+  onDescriptionChange,
 }: SubtaskListProps) {
   const { boardModifiers } = useContext(KanbanContext);
   const path = useNestedEntityPath();
@@ -234,6 +236,10 @@ export function SubtaskList({
       app.vault.offref(handler);
     };
   }, [file]);
+
+  useEffect(() => {
+    onDescriptionChange?.(description.length > 0);
+  }, [description]);
 
   // When file becomes available and description edit was pending (after file creation)
   useEffect(() => {
@@ -425,7 +431,7 @@ export function SubtaskList({
       )}
       {hasSubtaskContent && (
         <>
-          <div className={c('item-subtasks-header')}>{t('Subtasks')}</div>
+          {description && <div className={c('item-subtasks-header')}>{t('Subtasks')}</div>}
           {subtasks.map((subtask, i) => (
             <div key={i} className={c('item-subtask')}>
               <label className={c('item-subtask-label')}>

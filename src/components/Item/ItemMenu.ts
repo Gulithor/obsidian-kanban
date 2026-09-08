@@ -28,6 +28,7 @@ interface UseItemMenuParams {
   setEditState: Dispatch<StateUpdater<EditState>>;
   setShowAddSubtask: (v: boolean) => void;
   setShowAddDescription: (v: boolean) => void;
+  hasDescription: boolean;
   item: Item;
   path: Path;
   boardModifiers: BoardModifiers;
@@ -38,6 +39,7 @@ export function useItemMenu({
   setEditState,
   setShowAddSubtask,
   setShowAddDescription,
+  hasDescription,
   item,
   path,
   boardModifiers,
@@ -299,9 +301,8 @@ export function useItemMenu({
             });
         })
         .addItem((i) => {
-          const hasFile = !!item.data.metadata.file;
           i.setIcon('lucide-text')
-            .setTitle(hasFile ? t('Edit description') : t('Add description'))
+            .setTitle(hasDescription ? t('Edit description') : t('Add description'))
             .onClick(() => setShowAddDescription(true));
         })
         .addItem((i) => {
@@ -356,6 +357,6 @@ export function useItemMenu({
 
       menu.showAtPosition(coordinates);
     },
-    [setEditState, setShowAddSubtask, setShowAddDescription, item, path, boardModifiers, stateManager]
+    [setEditState, setShowAddSubtask, setShowAddDescription, hasDescription, item, path, boardModifiers, stateManager]
   );
 }

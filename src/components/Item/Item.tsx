@@ -51,6 +51,7 @@ const ItemInner = memo(function ItemInner({
   const [editState, setEditState] = useState<EditState>(EditingState.cancel);
   const [showAddSubtask, setShowAddSubtask] = useState(false);
   const [showAddDescription, setShowAddDescription] = useState(false);
+  const [hasDescription, setHasDescription] = useState(false);
 
   const dndManager = useContext(DndManagerContext);
 
@@ -79,6 +80,7 @@ const ItemInner = memo(function ItemInner({
     setEditState: setEditState,
     setShowAddSubtask,
     setShowAddDescription,
+    hasDescription,
     stateManager,
     path,
   });
@@ -138,6 +140,7 @@ const ItemInner = memo(function ItemInner({
           onAddSubtaskComplete={() => setShowAddSubtask(false)}
           showAddDescription={showAddDescription}
           onAddDescriptionComplete={() => setShowAddDescription(false)}
+          onDescriptionChange={setHasDescription}
         />
         {item.data.metadata.urgent && (
           <span className={c('item-urgent-icon')} aria-label="Urgent">
