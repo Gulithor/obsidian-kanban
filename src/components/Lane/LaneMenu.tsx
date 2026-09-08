@@ -131,6 +131,7 @@ export function useSettingsMenu({ setEditState, path, lane }: UseSettingsMenuPar
         laneColors.forEach((entry) => {
           submenu.addItem((i: any) => {
             i.setTitle(entry.name || '(unnamed)')
+              .setIcon('circle')
               .setChecked(lane.data.laneColor === entry.name)
               .onClick(() => {
                 boardModifiers.updateLane(
@@ -139,13 +140,12 @@ export function useSettingsMenu({ setEditState, path, lane }: UseSettingsMenuPar
                 );
               });
 
-            // Inject color dot into the menu item's title element
-            const titleEl: HTMLElement | null =
-              (i as any).titleEl ?? (i as any).dom?.querySelector('.menu-item-title');
-            if (titleEl) {
-              const dot = document.createElement('span');
-              dot.style.cssText = `display:inline-block;width:10px;height:10px;border-radius:50%;background-color:${entry.color};margin-right:6px;vertical-align:middle;flex-shrink:0;`;
-              titleEl.prepend(dot);
+            // Color the icon element that setIcon reliably sets on the item
+            const iconEl = i.iconEl as HTMLElement | undefined;
+            if (iconEl) {
+              iconEl.style.color = entry.color;
+              const svg = iconEl.querySelector('svg');
+              if (svg) (svg as HTMLElement).style.fill = entry.color;
             }
           });
         });
