@@ -1872,6 +1872,38 @@ body:not(.native-scrollbars) .kanban-plugin__scroll-container::-webkit-scrollbar
   transform: translate(0, -100%);
 }
 
+.kanban-plugin__lane-color-swatch-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.kanban-plugin__lane-color-swatch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 30px;
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  transition: filter 0.1s;
+  overflow: hidden;
+
+  &:hover {
+    filter: brightness(1.08);
+  }
+}
+
+.kanban-plugin__lane-color-swatch-hex {
+  font-size: 0.72em;
+  font-family: var(--font-monospace);
+  letter-spacing: 0.02em;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  user-select: none;
+}
+
 .kanban-plugin__date,
 .cm-kanban-time-wrapper,
 .cm-kanban-date-wrapper {
