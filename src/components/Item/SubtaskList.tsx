@@ -395,7 +395,7 @@ export function SubtaskList({
 
   return (
     <div className={c('item-subtasks')}>
-      {file && (
+      {file && (description || isEditingDesc) && (
         <div
           className={c('item-description')}
           onClick={
@@ -419,13 +419,7 @@ export function SubtaskList({
               placeholder={t('Add a description…')}
             />
           ) : (
-            <span
-              className={
-                description ? c('item-description-text') : c('item-description-placeholder')
-              }
-            >
-              {description || t('Add a description…')}
-            </span>
+            <span className={c('item-description-text')}>{description}</span>
           )}
         </div>
       )}

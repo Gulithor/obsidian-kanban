@@ -129,14 +129,15 @@ export function useSettingsMenu({ setEditState, path, lane }: UseSettingsMenuPar
         });
 
         laneColors.forEach((entry) => {
+          const trimmedName = entry.name.trim();
           submenu.addItem((i: any) => {
-            i.setTitle(entry.name || '(unnamed)')
+            i.setTitle(trimmedName || '(unnamed)')
               .setIcon('circle')
-              .setChecked(lane.data.laneColor === entry.name)
+              .setChecked(lane.data.laneColor?.trim() === trimmedName)
               .onClick(() => {
                 boardModifiers.updateLane(
                   path,
-                  update(lane, { data: { laneColor: { $set: entry.name } } })
+                  update(lane, { data: { laneColor: { $set: trimmedName } } })
                 );
               });
 

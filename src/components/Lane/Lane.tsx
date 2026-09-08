@@ -53,7 +53,7 @@ function DraggableLaneRaw({
   const laneColors = stateManager.useSetting('lane-colors') ?? [];
   const resolvedLaneColor = lane.data.laneColor
     ? (laneColors as Array<{ name: string; color: string }>).find(
-        (c) => c.name === lane.data.laneColor
+        (c) => c.name.trim() === lane.data.laneColor.trim()
       )?.color
     : undefined;
   const laneStyles = useMemo(

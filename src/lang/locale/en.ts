@@ -238,6 +238,7 @@ const en = {
   'Move to list': 'Move to list',
   'Mark as urgent': 'Mark as urgent',
   'Remove urgent': 'Remove urgent',
+  'Add description': 'Add description',
   'Edit description': 'Edit description',
   'Add a description…': 'Add a description…',
   Subtasks: 'Subtasks',

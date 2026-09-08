@@ -299,8 +299,9 @@ export function useItemMenu({
             });
         })
         .addItem((i) => {
+          const hasFile = !!item.data.metadata.file;
           i.setIcon('lucide-text')
-            .setTitle(t('Edit description'))
+            .setTitle(hasFile ? t('Edit description') : t('Add description'))
             .onClick(() => setShowAddDescription(true));
         })
         .addItem((i) => {
