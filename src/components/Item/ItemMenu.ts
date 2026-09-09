@@ -25,6 +25,7 @@ const wikilinkRegEx = /!?\[\[([^\]]*)\]\]/g;
 const mdLinkRegEx = /!?\[([^\]]*)\]\([^)]*\)/g;
 const tagRegEx = /#([^\u2000-\u206F\u2E00-\u2E7F'!"#$%&()*+,.:;<=>?@^`{|}~[\]\\\s\n\r]+)/g;
 const condenceWhiteSpaceRE = /\s+/g;
+const kanbanMetaRegEx = /\s*\[kanban-[^\]]+\]/g;
 
 interface UseItemMenuParams {
   setEditState: Dispatch<StateUpdater<EditState>>;
@@ -64,7 +65,10 @@ export function useItemMenu({
           i.setIcon('lucide-file-plus-2')
             .setTitle(t('New note from card'))
             .onClick(async () => {
-              const prevTitle = item.data.titleRaw.split('\n')[0].trim();
+              const prevTitleLine = item.data.titleRaw.split('\n')[0].trim();
+              // Strip kanban metadata (e.g. [kanban-urgent:: true]) so it is
+              // neither corrupted in the filename nor consumed by the wikilink replacement.
+              const prevTitle = prevTitleLine.replace(kanbanMetaRegEx, '').trim();
               const sanitizedTitle = prevTitle
                 .replace(embedRegEx, '$1')
                 .replace(wikilinkRegEx, '$1')
