@@ -36,6 +36,9 @@ Clicking subtask text enters an inline edit mode. Enter or blur saves the change
 ### Description editor improvements
 The description editor now has an X cancel button (matching the title editor). Pointer movement is no longer blocked by the drag-and-drop system while editing the description.
 
+### Tag modal improvements
+The "Manage tags" modal shows existing tags from across the board as clickable suggestion chips — click to add without typing. Duplicate tags are prevented both in the UI (suggestion chips hide already-added tags; clicking a chip with an existing tag is a no-op) and at save time (deduplication via Set). The tag color preview in board settings no longer shows the `#` prefix.
+
 ### Menu-managed tags (kanban-tags)
 Cards can have tags added via the card menu ("Add tags" / "Edit tags"), without writing them in the card title. Tags are stored as `[kanban-tags:: tag1, tag2]` bracket metadata — invisible in the title, displayed as pills in the card footer without the `#` prefix. The modal shows one input per tag with individual add and remove controls. Tag colors are configured in board settings (Tag Colors section) and apply automatically. Clicking a tag in the footer opens Obsidian's global search for that tag.
 

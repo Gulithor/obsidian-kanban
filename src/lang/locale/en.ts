@@ -257,6 +257,7 @@ const en = {
   'Enter tags separated by commas (e.g. work, personal, project)': 'Enter tags separated by commas (e.g. work, personal, project)',
   'tag1, tag2, tag3': 'tag1, tag2, tag3',
   'tag name': 'tag name',
+  'Existing tags on this board': 'Existing tags on this board',
   'Pick a color': 'Pick a color',
   preview: 'preview',
   'Add description': 'Add description',

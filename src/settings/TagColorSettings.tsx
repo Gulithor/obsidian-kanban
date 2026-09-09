@@ -139,7 +139,7 @@ function Item({ tagColorKey, deleteKey, updateKey, defaultColors }: ItemProps) {
           <div className={c('setting-toggle-wrapper')}>
             <div>
               <div className={c('item-tags')}>
-                <a className={`tag ${c('item-tag')}`}>#tag1</a>
+                <a className={`tag ${c('item-tag')}`}>tag1</a>
                 <a
                   className={`tag ${c('item-tag')}`}
                   style={{
@@ -147,9 +147,9 @@ function Item({ tagColorKey, deleteKey, updateKey, defaultColors }: ItemProps) {
                     '--tag-background': tagColorKey.backgroundColor,
                   }}
                 >
-                  {tagColorKey.tagKey || '#tag'}
+                  {(tagColorKey.tagKey || '#tag').replace(/^#/, '')}
                 </a>
-                <a className={`tag ${c('item-tag')}`}>#tag2</a>
+                <a className={`tag ${c('item-tag')}`}>tag2</a>
               </div>
             </div>
           </div>

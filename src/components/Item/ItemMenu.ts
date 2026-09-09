@@ -376,7 +376,7 @@ export function useItemMenu({
           .setTitle(hasTags ? t('Edit tags') : t('Add tags'))
           .onClick(() => {
             const initialTags = item.data.metadata.kanbanTags || [];
-            new TagsModal(stateManager.app, initialTags, (tagNames) => {
+            new TagsModal(stateManager.app, initialTags, stateManager, (tagNames) => {
               const TAGS_RE = /\s*\[kanban-tags::\s*[^\]]+\]/g;
               let newTitleRaw: string;
               if (tagNames.length > 0) {
