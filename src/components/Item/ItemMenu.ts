@@ -9,6 +9,7 @@ import { t } from 'src/lang/helpers';
 import { BoardModifiers } from '../../helpers/boardModifiers';
 import { BlockerModal } from './BlockerModal';
 import { RecurringModal } from './RecurringModal';
+import { TagsModal } from './TagsModal';
 import { DeleteCardModal } from './DeleteCardModal';
 import { applyTemplate, escapeRegExpStr, generateInstanceId, maybeCompleteForMove } from '../helpers';
 import { DataTypes, EditState, Item } from '../types';
@@ -364,6 +365,44 @@ export function useItemMenu({
             .onClick(() => {
               const BLOCKER_RE = /\s*\[kanban-blocker::\s*[^\]]+\]/g;
               const newTitleRaw = item.data.titleRaw.replace(BLOCKER_RE, '').trim();
+              boardModifiers.updateItem(path, stateManager.updateItemContent(item, newTitleRaw));
+            });
+        });
+      }
+
+      const hasTags = !!item.data.metadata.kanbanTags?.length;
+      menu.addItem((i) => {
+        i.setIcon('lucide-tag')
+          .setTitle(hasTags ? t('Edit tags') : t('Add tags'))
+          .onClick(() => {
+            const initialTags = item.data.metadata.kanbanTags || [];
+            new TagsModal(stateManager.app, initialTags, (tagNames) => {
+              const TAGS_RE = /\s*\[kanban-tags::\s*[^\]]+\]/g;
+              let newTitleRaw: string;
+              if (tagNames.length > 0) {
+                if (hasTags) {
+                  newTitleRaw = item.data.titleRaw.replace(
+                    TAGS_RE,
+                    ` [kanban-tags:: ${tagNames.join(', ')}]`
+                  );
+                } else {
+                  newTitleRaw = `${item.data.titleRaw} [kanban-tags:: ${tagNames.join(', ')}]`;
+                }
+              } else {
+                newTitleRaw = item.data.titleRaw.replace(TAGS_RE, '').trim();
+              }
+              boardModifiers.updateItem(path, stateManager.updateItemContent(item, newTitleRaw));
+            }).open();
+          });
+      });
+
+      if (hasTags) {
+        menu.addItem((i) => {
+          i.setIcon('lucide-tag-off')
+            .setTitle(t('Remove tags'))
+            .onClick(() => {
+              const TAGS_RE = /\s*\[kanban-tags::\s*[^\]]+\]/g;
+              const newTitleRaw = item.data.titleRaw.replace(TAGS_RE, '').trim();
               boardModifiers.updateItem(path, stateManager.updateItemContent(item, newTitleRaw));
             });
         });

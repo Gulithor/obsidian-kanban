@@ -235,6 +235,20 @@ export function listItemToItemData(stateManager: StateManager, md: string, item:
     itemData.titleSearchRaw = itemData.titleSearchRaw.replace(KANBAN_DONE_RE, '').trim();
   }
 
+  // Extract and remove menu-managed tags stored as [kanban-tags:: tag1, tag2]
+  const KANBAN_TAGS_RE = /\s*\[kanban-tags::\s*([^\]]+)\]/g;
+  const tagsMatch = KANBAN_TAGS_RE.exec(itemData.titleRaw);
+  if (tagsMatch) {
+    itemData.metadata.kanbanTags = tagsMatch[1]
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+    KANBAN_TAGS_RE.lastIndex = 0;
+    itemData.title = itemData.title.replace(KANBAN_TAGS_RE, '').trim();
+    itemData.titleSearch = itemData.titleSearch.replace(KANBAN_TAGS_RE, '').trim();
+    itemData.titleSearchRaw = itemData.titleSearchRaw.replace(KANBAN_TAGS_RE, '').trim();
+  }
+
   const firstLineEnd = itemData.title.indexOf('\n');
   const inlineFields = extractInlineFields(itemData.title, true);
 

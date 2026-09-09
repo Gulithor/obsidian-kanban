@@ -129,6 +129,59 @@ function checkCheckbox(stateManager: StateManager, title: string, checkboxIndex:
   return results.join('\n');
 }
 
+export function KanbanTags({
+  tags,
+  searchQuery,
+}: {
+  tags?: string[];
+  searchQuery?: string;
+}) {
+  const { stateManager } = useContext(KanbanContext);
+  const getTagColor = useGetTagColorFn(stateManager);
+  const search = useContext(SearchContext);
+
+  if (!tags?.length) return null;
+
+  return (
+    <div className={c('item-tags')}>
+      {tags.map((tag, i) => {
+        const tagColor = getTagColor('#' + tag);
+
+        return (
+          <a
+            href={'#' + tag}
+            onClick={(e) => {
+              e.preventDefault();
+              const tagAction = stateManager.getSetting('tag-action');
+              if (search && tagAction === 'kanban') {
+                search.search('#' + tag, true);
+                return;
+              }
+              (stateManager.app as any).internalPlugins
+                .getPluginById('global-search')
+                .instance.openGlobalSearch(`tag:${tag}`);
+            }}
+            key={i}
+            className={`tag ${c('item-tag')} ${
+              searchQuery && tag.toLocaleLowerCase().contains(searchQuery)
+                ? 'is-search-match'
+                : ''
+            }`}
+            style={
+              tagColor && {
+                '--tag-color': tagColor.color,
+                '--tag-background': tagColor.backgroundColor,
+              }
+            }
+          >
+            {tag}
+          </a>
+        );
+      })}
+    </div>
+  );
+}
+
 export function Tags({
   tags,
   searchQuery,
@@ -336,6 +389,7 @@ export const ItemContent = memo(function ItemContent({
           <CompletionDate item={item} stateManager={stateManager} />
           <InlineMetadata item={item} stateManager={stateManager} />
           <Tags tags={item.data.metadata.tags} searchQuery={searchQuery} />
+          <KanbanTags tags={item.data.metadata.kanbanTags} searchQuery={searchQuery} />
         </div>
       )}
     </div>

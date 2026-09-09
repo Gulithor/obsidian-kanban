@@ -76,6 +76,7 @@ export interface ItemMetadata {
   blocker?: string;
   recurring?: string;
   tags?: string[];
+  kanbanTags?: string[];
   fileAccessor?: FileAccessor;
   file?: TFile | null;
   fileMetadata?: FileMetadata;
