@@ -35,6 +35,7 @@ export function generateInstanceId(len: number = 9): string {
 
 const KANBAN_DONE_RE = /\s*\[kanban-done::\s*[^\]]+\]/g;
 const KANBAN_URGENT_RE = /\s*\[kanban-urgent::\s*true\]/g;
+const KANBAN_BLOCKER_RE = /\s*\[kanban-blocker::\s*[^\]]+\]/g;
 function computeNextDueDate(currentDate: moment.Moment | undefined, rule: string): moment.Moment {
   const base = currentDate ? currentDate.clone() : moment().startOf('day');
   const lc = rule.toLowerCase().trim();
@@ -75,9 +76,11 @@ function applyCompletionDate(item: Item, newShouldComplete: boolean): Item {
     const newRaw = item.data.titleRaw
       .replace(KANBAN_DONE_RE, '')
       .replace(KANBAN_URGENT_RE, '')
+      .replace(KANBAN_BLOCKER_RE, '')
       .trimEnd() + ` [kanban-done:: ${today}]`;
     KANBAN_DONE_RE.lastIndex = 0;
     KANBAN_URGENT_RE.lastIndex = 0;
+    KANBAN_BLOCKER_RE.lastIndex = 0;
     return update(item, {
       data: {
         titleRaw: { $set: newRaw },
@@ -88,6 +91,7 @@ function applyCompletionDate(item: Item, newShouldComplete: boolean): Item {
           completedDateStr: { $set: today },
           completedDate: { $set: moment(today, 'YYYY-MM-DD') },
           urgent: { $set: undefined },
+          blocker: { $set: undefined },
         },
       },
     });
