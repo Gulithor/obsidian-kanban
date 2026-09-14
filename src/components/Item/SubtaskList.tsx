@@ -302,11 +302,14 @@ export function SubtaskList({
     const dateMatches = raw.match(dateTriggerRe) ?? [];
     const preservedSuffix = [...timeMatches, ...dateMatches].join(' ');
 
+    const kanbanMetaRe = /\s*\[kanban-[^\]]+\]/g;
+    const kanbanMeta = (raw.match(kanbanMetaRe) ?? []).join('').trim();
+
     const noteName = raw
       .replace(timeTriggerRe, '')
       .replace(dateTriggerRe, '')
       .replace(/!?\[\[.*?\]\]/g, '')
-      .replace(/\[kanban-done::[^\]]+\]/g, '')
+      .replace(kanbanMetaRe, '')
       .replace(/\s+/g, ' ')
       .trim();
 
@@ -323,7 +326,8 @@ export function SubtaskList({
     )) as TFile;
 
     const link = (app.fileManager as any).generateMarkdownLink(newFile, stateManager.file.path);
-    const newTitleRaw = preservedSuffix ? `${link} ${preservedSuffix}` : link;
+    const linkWithSuffix = preservedSuffix ? `${link} ${preservedSuffix}` : link;
+    const newTitleRaw = kanbanMeta ? `${linkWithSuffix} ${kanbanMeta}` : linkWithSuffix;
     boardModifiers.updateItem(path, stateManager.updateItemContent(item, newTitleRaw));
 
     return newFile;
