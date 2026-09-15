@@ -133,8 +133,15 @@ export function maybeCompleteForMove(
 
   const isComplete = item.data.checked && item.data.checkChar === getTaskStatusDone();
 
-  // If it already matches the new lane, leave it alone
-  if (newShouldComplete === isComplete) return { next: item };
+  // If it already matches the new lane, leave it alone.
+  // Exception: always strip the done date when leaving a Done lane, even if the
+  // card was manually unchecked while there (isComplete=false, newShouldComplete=false).
+  if (newShouldComplete === isComplete) {
+    if (oldShouldComplete && !newShouldComplete) {
+      return { next: applyCompletionDate(item, false) };
+    }
+    return { next: item };
+  }
 
   if (newShouldComplete) {
     item = update(item, { data: { checkChar: { $set: getTaskStatusPreDone() } } });

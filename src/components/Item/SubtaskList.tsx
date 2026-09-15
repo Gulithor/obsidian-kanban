@@ -427,7 +427,7 @@ export function SubtaskList({
   if (!file && !subtasks.length && !showAddInput && !showAddDescription) return null;
 
   return (
-    <div className={c('item-subtasks')}>
+    <div className={c('item-subtasks')} onDblClick={(e) => e.stopPropagation()}>
       {file && (description || isEditingDesc) && (
         <div
           data-ignore-drag={isEditingDesc ? true : undefined}
