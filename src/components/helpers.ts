@@ -295,13 +295,13 @@ export function escapeRegExpStr(str: string) {
 }
 
 export function getTemplatePlugins(app: App) {
-  const templatesPlugin = (app as any).internalPlugins.plugins.templates;
-  const templatesEnabled = templatesPlugin.enabled;
-  const templaterPlugin = (app as any).plugins.plugins['templater-obsidian'];
+  const templatesPlugin = (app as any).internalPlugins?.plugins?.templates;
+  const templatesEnabled = templatesPlugin?.enabled ?? false;
+  const templaterPlugin = (app as any).plugins?.plugins?.['templater-obsidian'];
   const templaterEnabled = (app as any).plugins.enabledPlugins.has('templater-obsidian');
   const templaterEmptyFileTemplate =
     templaterPlugin &&
-    (this.app as any).plugins.plugins['templater-obsidian'].settings?.empty_file_template;
+    (app as any).plugins.plugins['templater-obsidian']?.settings?.empty_file_template;
 
   const templateFolder = templatesEnabled
     ? templatesPlugin.instance.options.folder

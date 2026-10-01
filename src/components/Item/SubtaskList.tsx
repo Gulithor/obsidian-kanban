@@ -325,6 +325,15 @@ export function SubtaskList({
       sanitized
     )) as TFile;
 
+    const newNoteTemplatePath = stateManager.getSetting('new-note-template') as string | undefined;
+    if (newNoteTemplatePath) {
+      const templateFile = app.vault.getAbstractFileByPath(newNoteTemplatePath);
+      if (templateFile instanceof TFile) {
+        const templateContent = await app.vault.read(templateFile);
+        await app.vault.modify(newFile, templateContent);
+      }
+    }
+
     const link = (app.fileManager as any).generateMarkdownLink(newFile, stateManager.file.path);
     const linkWithSuffix = preservedSuffix ? `${link} ${preservedSuffix}` : link;
     const newTitleRaw = kanbanMeta ? `${linkWithSuffix} ${kanbanMeta}` : linkWithSuffix;
